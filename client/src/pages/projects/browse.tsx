@@ -12,6 +12,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import type { SearchFilters as SearchFiltersType } from "@/types";
 
 export default function BrowseProjects() {
+  console.log("BrowseProjects loaded");
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<SearchFiltersType>({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,7 +36,17 @@ export default function BrowseProjects() {
     queryKey: ['/api/projects', queryParams.toString()],
   });
 
-  const projects = projectsData?.projects || [];
+  const projects = projectsData?.projects || [
+    // Example mock project
+    {
+      id: "1",
+      title: "Mock Project",
+      description: "This is a mock project for development.",
+      skills: ["React", "Node.js"],
+      budget: 500,
+      timeline: "1 week"
+    }
+  ];
   // Use the real total count if available from API, else fallback to projects.length
   const totalCount = projectsData?.totalCount ?? projects.length;
 
@@ -136,30 +148,20 @@ export default function BrowseProjects() {
 
           {/* Main Content */}
           <div className={`${isMobile ? 'col-span-full' : 'lg:col-span-3'}`}>
-            {/* Show total results if available */}
             <div className="mb-4 text-muted-foreground text-sm">
               {isLoading
                 ? "Loading projects..."
                 : `Showing ${projects.length} of ${totalCount} projects`}
             </div>
-            {!isLoading && projects.length === 0 ? (
+            {/* Show a message if there is no backend or no data */}
+            {!isLoading && (!projectsData || projects.length === 0) ? (
               <Card className="bg-white/95 dark:bg-card/95 shadow-2xl">
                 <CardContent className="p-8 text-center">
                   <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No projects found</h3>
+                  <h3 className="text-lg font-semibold mb-2">No projects available</h3>
                   <p className="text-muted-foreground mb-4">
-                    Try adjusting your search or filter settings.
+                    There are currently no projects to display. This may be because the backend is not connected yet or the endpoint does not exist.
                   </p>
-                  <Button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setFilters({});
-                      setCurrentPage(1);
-                    }}
-                    variant="outline"
-                  >
-                    Reset Filters
-                  </Button>
                 </CardContent>
               </Card>
             ) : (
