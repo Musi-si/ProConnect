@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProConnect - Micro Freelance Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/24/outline/index.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                },
+                fontFamily: {
+                    sans: ["Inter", "system-ui", "sans-serif"],
+                }
+            },
+        }
+    };
+    </script>
+    <style>
+    :root {
+        --radius: 8px;
+        --background: hsl(210 11% 96%);
+        --foreground: hsl(210 40% 5%);
+        --card: hsl(0 0% 100%);
+        --card-foreground: hsl(210 40% 5%);
+        --primary: hsl(22 93% 53%);
+        --primary-foreground: hsl(210 40% 98%);
+        --secondary: hsl(210 40% 96%);
+        --secondary-foreground: hsl(210 40% 15%);
+        --muted: hsl(210 40% 96%);
+        --muted-foreground: hsl(210 40% 45%);
+        --accent: hsl(22 93% 53%);
+        --accent-foreground: hsl(210 40% 98%);
+        --border: hsl(214 32% 91%);
+        --input: hsl(214 32% 91%);
+        --ring: hsl(22 93% 53%);
+    }
+    
+    .dark {
+        --background: hsl(222 84% 5%);
+        --foreground: hsl(210 40% 95%);
+        --card: hsl(222 27% 11%);
+        --card-foreground: hsl(210 40% 95%);
+        --primary: hsl(22 93% 53%);
+        --primary-foreground: hsl(210 40% 98%);
+        --secondary: hsl(222 47% 11%);
+        --secondary-foreground: hsl(210 40% 80%);
+        --muted: hsl(222 47% 11%);
+        --muted-foreground: hsl(215 20% 65%);
+        --accent: hsl(22 93% 53%);
+        --accent-foreground: hsl(210 40% 98%);
+        --border: hsl(217 32% 17%);
+        --input: hsl(217 32% 17%);
+        --ring: hsl(22 93% 53%);
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--muted-foreground);
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-in {
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .online-indicator {
+        position: relative;
+    }
+    .online-indicator::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #10b981;
+        border: 2px solid var(--background);
+    }
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans antialiased">
+    <!-- Navigation -->
+    <!-- @COMPONENT: Navigation [responsive header with role-based navigation] -->
+    <nav class="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-primary rounded-lg p-2">
+                        <i class="fas fa-handshake text-primary-foreground text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold text-foreground">ProConnect</span>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#browse-tasks" class="text-foreground hover:text-primary transition-colors">Find Work</a>
+                    <a href="#find-talent" class="text-foreground hover:text-primary transition-colors">Find Talent</a>
+                    <a href="#how-it-works" class="text-foreground hover:text-primary transition-colors">How It Works</a>
+                </div>
+                
+                <!-- Auth Buttons & Theme Toggle -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleTheme()" class="p-2 rounded-lg bg-secondary hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <i class="fas fa-moon text-sm" id="theme-icon"></i>
+                    </button>
+                    <button class="text-sm font-medium text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-secondary">
+                        Sign In
+                    </button>
+                    <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
+                        Get Started
+                    </button>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-card">
+            <div class="px-4 py-4 space-y-2">
+                <a href="#browse-tasks" class="block px-3 py-2 text-foreground hover:text-primary hover:bg-secondary rounded-lg transition-colors">Find Work</a>
+                <a href="#find-talent" class="block px-3 py-2 text-foreground hover:text-primary hover:bg-secondary rounded-lg transition-colors">Find Talent</a>
+                <a href="#how-it-works" class="block px-3 py-2 text-foreground hover:text-primary hover:bg-secondary rounded-lg transition-colors">How It Works</a>
+            </div>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: Navigation -->
+
+    <!-- Hero Section -->
+    <!-- @COMPONENT: HeroSection [main landing section with CTAs] -->
+    <section class="relative overflow-hidden">
+        <!-- Modern background with geometric shapes -->
+        <div class="absolute inset-0 bg-gradient-to-br from-orange-50 via-background to-orange-50 dark:from-gray-900 dark:via-background dark:to-gray-900"></div>
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23f97316" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Content -->
+                <div class="space-y-8">
+                    <div class="space-y-4">
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                            Find the perfect
+                            <span class="text-primary">freelancer</span>
+                            for your project
+                        </h1>
+                        <p class="text-lg text-muted-foreground max-w-xl">
+                            Connect with skilled professionals worldwide. Post your project, receive competitive bids, and get quality work delivered on time.
+                        </p>
+                    </div>
+                    
+                    <!-- Quick Search -->
+                    <div class="bg-card p-6 rounded-xl shadow-lg border border-border">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <input type="text" placeholder="What service are you looking for?" 
+                                       class="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                            </div>
+                            <button class="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium whitespace-nowrap">
+                                Search Now
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-8">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-primary">10K+</div>
+                            <div class="text-sm text-muted-foreground">Active Freelancers</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-primary">5K+</div>
+                            <div class="text-sm text-muted-foreground">Projects Completed</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-primary">98%</div>
+                            <div class="text-sm text-muted-foreground">Client Satisfaction</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hero Image/Illustration -->
+                <div class="lg:order-last">
+                    <div class="relative">
+                        <!-- Professional workspace with laptop and design tools -->
+                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
+                             alt="Modern office workspace with laptops and collaboration tools" 
+                             class="rounded-2xl shadow-2xl w-full h-auto">
+                        
+                        <!-- Floating Elements -->
+                        <div class="absolute -top-6 -right-6 bg-card border border-border p-4 rounded-xl shadow-lg animate-slide-in">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-foreground text-sm">Project Completed!</div>
+                                    <div class="text-xs text-muted-foreground">$2,500 earned</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute -bottom-6 -left-6 bg-card border border-border p-4 rounded-xl shadow-lg animate-slide-in">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                                    <i class="fas fa-handshake text-primary-foreground text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-foreground text-sm">New Match Found!</div>
+                                    <div class="text-xs text-muted-foreground">95% skill match</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: HeroSection -->
+
+    <!-- Dashboard Preview -->
+    <!-- @COMPONENT: DashboardPreview [shows different user role interfaces] -->
+    <section class="py-24 bg-muted/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Section Header -->
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Choose Your Path</h2>
+                <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+                    Whether you're looking to hire talent or offer your skills, we've got you covered.
+                </p>
+            </div>
+            
+            <!-- Role Tabs -->
+            <div class="flex justify-center mb-12">
+                <div class="bg-card p-1 rounded-lg border border-border">
+                    <button onclick="showRole('client')" id="client-tab" class="px-6 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground">
+                        I'm a Client
+                    </button>
+                    <button onclick="showRole('freelancer')" id="freelancer-tab" class="px-6 py-2 rounded-md font-medium transition-colors text-muted-foreground hover:text-foreground">
+                        I'm a Freelancer
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Client Dashboard -->
+            <div id="client-dashboard" class="dashboard-view">
+                <div class="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+                    <!-- Dashboard Header -->
+                    <div class="bg-gradient-to-r from-primary to-orange-600 text-primary-foreground p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold">Client Dashboard</h3>
+                                <p class="opacity-90">Welcome back, Sarah Johnson</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">3</div>
+                                    <div class="text-sm opacity-90">Active Projects</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">$12.5K</div>
+                                    <div class="text-sm opacity-90">Total Spent</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dashboard Content -->
+                    <div class="p-6">
+                        <div class="grid lg:grid-cols-3 gap-6">
+                            <!-- Quick Actions -->
+                            <div class="space-y-4">
+                                <h4 class="font-semibold text-foreground">Quick Actions</h4>
+                                <div class="space-y-2">
+                                    <button class="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-orange-600 transition-colors text-left">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        Post New Project
+                                    </button>
+                                    <button class="w-full bg-secondary text-secondary-foreground p-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-left">
+                                        <i class="fas fa-search mr-2"></i>
+                                        Browse Freelancers
+                                    </button>
+                                    <button class="w-full bg-secondary text-secondary-foreground p-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-left">
+                                        <i class="fas fa-chart-bar mr-2"></i>
+                                        View Analytics
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Active Projects -->
+                            <div class="lg:col-span-2 space-y-4">
+                                <h4 class="font-semibold text-foreground">Active Projects</h4>
+                                <div class="space-y-4">
+                                    <!-- @MAP: activeProjects.map(project => ( -->
+                                    <div class="border border-border rounded-lg p-4 bg-background">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <div>
+                                                <h5 class="font-medium text-foreground">Mobile App UI Design</h5>
+                                                <p class="text-sm text-muted-foreground">Design Category • $2,500</p>
+                                            </div>
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full dark:bg-yellow-900 dark:text-yellow-200">
+                                                In Progress
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-6 h-6 bg-primary rounded-full online-indicator"></div>
+                                                <span class="text-sm text-foreground">Alex Rivera</span>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                                    <i class="fas fa-comment"></i>
+                                                </button>
+                                                <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- Progress Bar -->
+                                        <div class="mt-3">
+                                            <div class="flex justify-between text-sm mb-1">
+                                                <span class="text-muted-foreground">Progress</span>
+                                                <span class="text-foreground">65%</span>
+                                            </div>
+                                            <div class="w-full bg-secondary rounded-full h-2">
+                                                <div class="bg-primary h-2 rounded-full" style="width: 65%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                    
+                                    <div class="border border-border rounded-lg p-4 bg-background">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <div>
+                                                <h5 class="font-medium text-foreground">E-commerce Website</h5>
+                                                <p class="text-sm text-muted-foreground">Web Development • $5,000</p>
+                                            </div>
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900 dark:text-green-200">
+                                                Review
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-6 h-6 bg-blue-500 rounded-full"></div>
+                                                <span class="text-sm text-foreground">Maria Santos</span>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                                    <i class="fas fa-comment"></i>
+                                                </button>
+                                                <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="flex justify-between text-sm mb-1">
+                                                <span class="text-muted-foreground">Progress</span>
+                                                <span class="text-foreground">90%</span>
+                                            </div>
+                                            <div class="w-full bg-secondary rounded-full h-2">
+                                                <div class="bg-green-500 h-2 rounded-full" style="width: 90%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Freelancer Dashboard -->
+            <div id="freelancer-dashboard" class="dashboard-view hidden">
+                <div class="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+                    <!-- Dashboard Header -->
+                    <div class="bg-gradient-to-r from-primary to-orange-600 text-primary-foreground p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold">Freelancer Dashboard</h3>
+                                <p class="opacity-90">Welcome back, Alex Rivera</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">2</div>
+                                    <div class="text-sm opacity-90">Active Bids</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">$8.2K</div>
+                                    <div class="text-sm opacity-90">This Month</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dashboard Content -->
+                    <div class="p-6">
+                        <div class="grid lg:grid-cols-3 gap-6">
+                            <!-- Profile Stats -->
+                            <div class="space-y-4">
+                                <h4 class="font-semibold text-foreground">Profile Overview</h4>
+                                <div class="space-y-4">
+                                    <div class="text-center p-4 bg-secondary rounded-lg">
+                                        <div class="w-16 h-16 bg-primary rounded-full mx-auto mb-3 flex items-center justify-center">
+                                            <i class="fas fa-star text-primary-foreground text-lg"></i>
+                                        </div>
+                                        <div class="font-semibold text-foreground">4.9 Rating</div>
+                                        <div class="text-sm text-muted-foreground">Based on 47 reviews</div>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-muted-foreground">Profile Views</span>
+                                            <span class="text-sm font-medium text-foreground">234</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-muted-foreground">Response Rate</span>
+                                            <span class="text-sm font-medium text-green-600">95%</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-muted-foreground">Projects Done</span>
+                                            <span class="text-sm font-medium text-foreground">23</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recent Opportunities -->
+                            <div class="lg:col-span-2 space-y-4">
+                                <h4 class="font-semibold text-foreground">Recent Opportunities</h4>
+                                <div class="space-y-4">
+                                    <!-- @MAP: opportunities.map(opportunity => ( -->
+                                    <div class="border border-border rounded-lg p-4 bg-background">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <div class="flex-1">
+                                                <h5 class="font-medium text-foreground mb-1">React Native App Development</h5>
+                                                <p class="text-sm text-muted-foreground mb-2">
+                                                    Looking for an experienced React Native developer to build a social media app...
+                                                </p>
+                                                <div class="flex flex-wrap gap-2 mb-2">
+                                                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">React Native</span>
+                                                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">JavaScript</span>
+                                                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">API Integration</span>
+                                                </div>
+                                                <div class="flex items-center space-x-4 text-sm text-muted-foreground">
+                                                    <span><i class="fas fa-dollar-sign mr-1"></i>$3,000 - $5,000</span>
+                                                    <span><i class="fas fa-clock mr-1"></i>2 weeks</span>
+                                                    <span><i class="fas fa-user mr-1"></i>8 proposals</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs text-muted-foreground">Posted 2 hours ago</span>
+                                            <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm">
+                                                Submit Proposal
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                    
+                                    <div class="border border-border rounded-lg p-4 bg-background">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <div class="flex-1">
+                                                <h5 class="font-medium text-foreground mb-1">Logo Design for Tech Startup</h5>
+                                                <p class="text-sm text-muted-foreground mb-2">
+                                                    Need a modern, minimalist logo for a AI-powered fintech company...
+                                                </p>
+                                                <div class="flex flex-wrap gap-2 mb-2">
+                                                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Logo Design</span>
+                                                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Brand Identity</span>
+                                                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Adobe Illustrator</span>
+                                                </div>
+                                                <div class="flex items-center space-x-4 text-sm text-muted-foreground">
+                                                    <span><i class="fas fa-dollar-sign mr-1"></i>$800 - $1,500</span>
+                                                    <span><i class="fas fa-clock mr-1"></i>1 week</span>
+                                                    <span><i class="fas fa-user mr-1"></i>15 proposals</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs text-muted-foreground">Posted 5 hours ago</span>
+                                            <button class="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-sm">
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: DashboardPreview -->
+
+    <!-- Task Management Interface -->
+    <!-- @COMPONENT: TaskManagement [project posting and bidding interface] -->
+    <section class="py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Streamlined Project Management</h2>
+                <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+                    From posting your project to receiving completed work, everything is designed for efficiency.
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <!-- Project Posting Form -->
+                <div class="bg-card rounded-xl shadow-lg border border-border p-8">
+                    <h3 class="text-xl font-bold mb-6 text-foreground">Post Your Project</h3>
+                    
+                    <form class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Project Title</label>
+                            <input type="text" placeholder="e.g., Build a responsive e-commerce website" 
+                                   class="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground" data-mock="true">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Category</label>
+                            <select class="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                                <option data-mock="true">Web Development</option>
+                                <option data-mock="true">Mobile Development</option>
+                                <option data-mock="true">Design & Creative</option>
+                                <option data-mock="true">Writing & Translation</option>
+                                <option data-mock="true">Digital Marketing</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Project Description</label>
+                            <textarea rows="4" placeholder="Describe your project requirements in detail..." 
+                                      class="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground resize-none" data-mock="true"></textarea>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Budget</label>
+                                <select class="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                                    <option data-mock="true">$500 - $1,000</option>
+                                    <option data-mock="true">$1,000 - $3,000</option>
+                                    <option data-mock="true">$3,000 - $5,000</option>
+                                    <option data-mock="true">$5,000+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Timeline</label>
+                                <select class="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                                    <option data-mock="true">Less than 1 week</option>
+                                    <option data-mock="true">1-2 weeks</option>
+                                    <option data-mock="true">1 month</option>
+                                    <option data-mock="true">2-3 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Required Skills</label>
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">React.js <button class="ml-1 hover:text-destructive">×</button></span>
+                                <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">Node.js <button class="ml-1 hover:text-destructive">×</button></span>
+                                <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">MongoDB <button class="ml-1 hover:text-destructive">×</button></span>
+                            </div>
+                            <input type="text" placeholder="Add skills and press Enter" 
+                                   class="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground" data-mock="true">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Attachments</label>
+                            <div class="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-muted-foreground mb-3"></i>
+                                <p class="text-muted-foreground mb-2">Drop files here or click to upload</p>
+                                <p class="text-xs text-muted-foreground">Supports: PDF, DOC, PNG, JPG (Max 50MB)</p>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-primary text-primary-foreground py-4 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                            Post Project - $25 Fee
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Bidding Interface -->
+                <div class="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+                    <div class="p-6 border-b border-border">
+                        <h3 class="text-xl font-bold text-foreground">Received Proposals</h3>
+                        <p class="text-muted-foreground mt-1">8 freelancers have submitted proposals</p>
+                    </div>
+                    
+                    <div class="divide-y divide-border max-h-96 overflow-y-auto custom-scrollbar">
+                        <!-- @MAP: proposals.map(proposal => ( -->
+                        <div class="p-6 hover:bg-secondary/50 transition-colors">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center text-primary-foreground font-bold">
+                                    AR
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-foreground">Alex Rivera</h4>
+                                        <div class="flex items-center space-x-1">
+                                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                            <span class="text-sm font-medium text-foreground">4.9</span>
+                                            <span class="text-sm text-muted-foreground">(47)</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mb-3 line-clamp-2" data-mock="true">
+                                        I have 5+ years of experience in React.js and Node.js development. I can deliver a high-quality, responsive e-commerce website with all the features you mentioned...
+                                    </p>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4 text-sm">
+                                            <span class="font-semibold text-primary">$2,800</span>
+                                            <span class="text-muted-foreground">2 weeks</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="px-4 py-2 text-sm border border-border rounded-lg hover:bg-secondary transition-colors text-foreground">
+                                                Message
+                                            </button>
+                                            <button class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-orange-600 transition-colors">
+                                                Accept
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                        
+                        <div class="p-6 hover:bg-secondary/50 transition-colors">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                                    MS
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-foreground">Maria Santos</h4>
+                                        <div class="flex items-center space-x-1">
+                                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                            <span class="text-sm font-medium text-foreground">4.8</span>
+                                            <span class="text-sm text-muted-foreground">(32)</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mb-3 line-clamp-2" data-mock="true">
+                                        Specializing in full-stack e-commerce solutions with React and Node.js. I'll implement secure payment processing, inventory management, and responsive design...
+                                    </p>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4 text-sm">
+                                            <span class="font-semibold text-primary">$3,200</span>
+                                            <span class="text-muted-foreground">3 weeks</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="px-4 py-2 text-sm border border-border rounded-lg hover:bg-secondary transition-colors text-foreground">
+                                                Message
+                                            </button>
+                                            <button class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-orange-600 transition-colors">
+                                                Accept
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6 hover:bg-secondary/50 transition-colors">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
+                                    JL
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-foreground">James Liu</h4>
+                                        <div class="flex items-center space-x-1">
+                                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                            <span class="text-sm font-medium text-foreground">4.7</span>
+                                            <span class="text-sm text-muted-foreground">(28)</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mb-3 line-clamp-2" data-mock="true">
+                                        Full-stack developer with expertise in modern web technologies. I can create a scalable e-commerce platform with advanced features and SEO optimization...
+                                    </p>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4 text-sm">
+                                            <span class="font-semibold text-primary">$2,500</span>
+                                            <span class="text-muted-foreground">18 days</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="px-4 py-2 text-sm border border-border rounded-lg hover:bg-secondary transition-colors text-foreground">
+                                                Message
+                                            </button>
+                                            <button class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-orange-600 transition-colors">
+                                                Accept
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border-t border-border bg-muted/30">
+                        <button class="w-full text-primary hover:text-orange-600 transition-colors font-medium">
+                            View All Proposals (8)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: TaskManagement -->
+
+    <!-- Real-time Messaging Interface -->
+    <!-- @COMPONENT: MessagingInterface [chat system between clients and freelancers] -->
+    <section class="py-24 bg-muted/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Stay Connected</h2>
+                <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+                    Communicate directly with freelancers through our built-in messaging system. Share files, track progress, and keep everything organized.
+                </p>
+            </div>
+            
+            <div class="bg-card rounded-xl shadow-lg border border-border overflow-hidden max-w-4xl mx-auto">
+                <div class="grid md:grid-cols-3 h-96">
+                    <!-- Chat Sidebar -->
+                    <div class="border-r border-border bg-muted/30">
+                        <div class="p-4 border-b border-border">
+                            <h3 class="font-semibold text-foreground">Messages</h3>
+                            <p class="text-sm text-muted-foreground">3 active conversations</p>
+                        </div>
+                        <div class="divide-y divide-border">
+                            <!-- @MAP: conversations.map(chat => ( -->
+                            <div class="p-4 hover:bg-secondary/50 cursor-pointer transition-colors bg-secondary/20">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-primary rounded-full online-indicator flex items-center justify-center text-primary-foreground font-semibold">
+                                        AR
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium text-foreground text-sm">Alex Rivera</h4>
+                                            <span class="text-xs text-muted-foreground">2m</span>
+                                        </div>
+                                        <p class="text-sm text-muted-foreground truncate" data-mock="true">The mockups are ready for review...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                            <div class="p-4 hover:bg-secondary/50 cursor-pointer transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                        MS
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium text-foreground text-sm">Maria Santos</h4>
+                                            <span class="text-xs text-muted-foreground">1h</span>
+                                        </div>
+                                        <p class="text-sm text-muted-foreground truncate" data-mock="true">Database integration is complete</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4 hover:bg-secondary/50 cursor-pointer transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                        JL
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium text-foreground text-sm">James Liu</h4>
+                                            <span class="text-xs text-muted-foreground">3h</span>
+                                        </div>
+                                        <p class="text-sm text-muted-foreground truncate" data-mock="true">Question about the payment gateway</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Window -->
+                    <div class="md:col-span-2 flex flex-col">
+                        <!-- Chat Header -->
+                        <div class="p-4 border-b border-border bg-background">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary rounded-full online-indicator flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                                        AR
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-foreground">Alex Rivera</h4>
+                                        <p class="text-xs text-muted-foreground">Online • Mobile App UI Design</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                        <i class="fas fa-phone text-sm"></i>
+                                    </button>
+                                    <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                        <i class="fas fa-video text-sm"></i>
+                                    </button>
+                                    <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                        <i class="fas fa-ellipsis-v text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Messages -->
+                        <div class="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-4 bg-muted/20">
+                            <!-- @MAP: messages.map(message => ( -->
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                                    AR
+                                </div>
+                                <div class="flex-1">
+                                    <div class="bg-secondary rounded-lg p-3 max-w-xs">
+                                        <p class="text-sm text-foreground" data-mock="true">Hi! I've completed the initial mockups for your mobile app. Would you like to review them?</p>
+                                    </div>
+                                    <span class="text-xs text-muted-foreground mt-1 block">2 minutes ago</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                            <div class="flex items-start space-x-3 justify-end">
+                                <div class="flex-1 text-right">
+                                    <div class="bg-primary text-primary-foreground rounded-lg p-3 max-w-xs ml-auto">
+                                        <p class="text-sm" data-mock="true">Absolutely! Please share them when you're ready. Also, did you include the dark mode variations we discussed?</p>
+                                    </div>
+                                    <span class="text-xs text-muted-foreground mt-1 block">1 minute ago</span>
+                                </div>
+                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                                    SJ
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                                    AR
+                                </div>
+                                <div class="flex-1">
+                                    <div class="bg-secondary rounded-lg p-3 max-w-xs">
+                                        <p class="text-sm text-foreground" data-mock="true">Yes! I've prepared both light and dark versions. Uploading them now...</p>
+                                    </div>
+                                    <!-- File Attachment -->
+                                    <div class="bg-card border border-border rounded-lg p-3 mt-2 max-w-xs">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                                                <i class="fas fa-file-image text-primary text-sm"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-foreground truncate" data-mock="true">app-mockups-v1.zip</p>
+                                                <p class="text-xs text-muted-foreground">2.4 MB</p>
+                                            </div>
+                                            <button class="text-primary hover:text-orange-600 transition-colors">
+                                                <i class="fas fa-download text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-muted-foreground mt-1 block">Just now</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Typing Indicator -->
+                            <div class="flex items-center space-x-2 text-muted-foreground">
+                                <div class="flex space-x-1">
+                                    <div class="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                                    <div class="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                                    <div class="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                                </div>
+                                <span class="text-xs">Alex is typing...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Message Input -->
+                        <div class="p-4 border-t border-border bg-background">
+                            <div class="flex items-center space-x-3">
+                                <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <input type="text" placeholder="Type your message..." 
+                                       class="flex-1 px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground" data-mock="true">
+                                <button class="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-orange-600 transition-colors">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: MessagingInterface -->
+
+    <!-- Milestone & Payment Tracking -->
+    <!-- @COMPONENT: MilestonePayments [milestone tracking and payment interface] -->
+    <section class="py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Milestone-Based Payments</h2>
+                <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+                    Break your project into milestones and pay as work gets completed. Secure payments through Stripe with full transparency.
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- Project Milestones -->
+                <div class="bg-card rounded-xl shadow-lg border border-border p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-foreground">Project Milestones</h3>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium dark:bg-green-900 dark:text-green-200">
+                            Active Project
+                        </span>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- @MAP: milestones.map(milestone => ( -->
+                        <div class="relative">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-white text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-foreground">Initial Design & Wireframes</h4>
+                                        <span class="text-sm font-semibold text-green-600">$800</span>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mb-3" data-mock="true">
+                                        Create user interface mockups and wireframes for all key screens including homepage, product pages, and checkout flow.
+                                    </p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-muted-foreground">Completed on Dec 15, 2023</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900 dark:text-green-200">
+                                            Paid
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute left-5 top-10 w-px h-6 bg-border"></div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                        
+                        <div class="relative">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                                    <i class="fas fa-clock text-primary-foreground text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-foreground">Frontend Development</h4>
+                                        <span class="text-sm font-semibold text-primary">$1,200</span>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mb-3" data-mock="true">
+                                        Implement responsive frontend using React.js with all designed components and integrate with backend APIs.
+                                    </p>
+                                    <div class="mb-3">
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span class="text-muted-foreground">Progress</span>
+                                            <span class="text-foreground">75%</span>
+                                        </div>
+                                        <div class="w-full bg-secondary rounded-full h-2">
+                                            <div class="bg-primary h-2 rounded-full" style="width: 75%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-muted-foreground">Due: Dec 22, 2023</span>
+                                        <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full dark:bg-orange-900 dark:text-orange-200">
+                                            In Progress
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute left-5 top-10 w-px h-6 bg-border"></div>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 w-10 h-10 bg-secondary rounded-full flex items-center justify-center">
+                                    <span class="text-muted-foreground font-semibold text-sm">3</span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-muted-foreground">Testing & Deployment</h4>
+                                        <span class="text-sm font-semibold text-muted-foreground">$500</span>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mb-3" data-mock="true">
+                                        Comprehensive testing, bug fixes, and deployment to production environment with documentation.
+                                    </p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-muted-foreground">Due: Dec 28, 2023</span>
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full dark:bg-gray-800 dark:text-gray-200">
+                                            Pending
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Milestone Actions -->
+                        <div class="pt-4 border-t border-border">
+                            <button class="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                                Approve Current Milestone - $1,200
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Dashboard -->
+                <div class="space-y-6">
+                    <!-- Payment Summary -->
+                    <div class="bg-card rounded-xl shadow-lg border border-border p-8">
+                        <h3 class="text-xl font-bold mb-6 text-foreground">Payment Overview</h3>
+                        
+                        <div class="grid grid-cols-2 gap-6 mb-6">
+                            <div class="text-center p-4 bg-primary/10 rounded-lg">
+                                <div class="text-2xl font-bold text-primary">$2,500</div>
+                                <div class="text-sm text-muted-foreground">Total Budget</div>
+                            </div>
+                            <div class="text-center p-4 bg-green-100 rounded-lg dark:bg-green-900/20">
+                                <div class="text-2xl font-bold text-green-600">$800</div>
+                                <div class="text-sm text-muted-foreground">Paid Out</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-muted-foreground">Remaining Balance</span>
+                                <span class="font-semibold text-foreground">$1,700</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-muted-foreground">Next Payment</span>
+                                <span class="font-semibold text-primary">$1,200</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-muted-foreground">Platform Fee (5%)</span>
+                                <span class="font-semibold text-foreground">$125</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 p-4 bg-muted/50 rounded-lg">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <i class="fas fa-shield-alt text-primary"></i>
+                                <span class="font-medium text-foreground">Secure Payments</span>
+                            </div>
+                            <p class="text-sm text-muted-foreground">
+                                Payments are processed securely through Stripe. Funds are held in escrow until milestone approval.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment History -->
+                    <div class="bg-card rounded-xl shadow-lg border border-border p-8">
+                        <h3 class="text-xl font-bold mb-6 text-foreground">Payment History</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- @MAP: paymentHistory.map(payment => ( -->
+                            <div class="flex items-center justify-between p-4 bg-background rounded-lg border border-border">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center dark:bg-green-900/20">
+                                        <i class="fas fa-check text-green-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-foreground">Initial Design Payment</h4>
+                                        <p class="text-sm text-muted-foreground">Dec 15, 2023 • Milestone 1</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-semibold text-foreground">$800.00</div>
+                                    <div class="text-sm text-muted-foreground">Completed</div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                            <div class="flex items-center justify-between p-4 bg-background rounded-lg border border-border">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center dark:bg-orange-900/20">
+                                        <i class="fas fa-clock text-orange-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-foreground">Project Initiation</h4>
+                                        <p class="text-sm text-muted-foreground">Dec 10, 2023 • Setup Fee</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-semibold text-foreground">$25.00</div>
+                                    <div class="text-sm text-muted-foreground">Platform Fee</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full mt-6 text-primary hover:text-orange-600 transition-colors font-medium">
+                            View Full Payment History
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: MilestonePayments -->
+
+    <!-- Search & Discovery -->
+    <!-- @COMPONENT: SearchDiscovery [advanced search and filtering interface] -->
+    <section class="py-24 bg-muted/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Find the Perfect Match</h2>
+                <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+                    Advanced search and filtering to help you discover the right freelancers for your projects or find projects that match your skills.
+                </p>
+            </div>
+            
+            <!-- Search Interface -->
+            <div class="bg-card rounded-xl shadow-lg border border-border p-8 mb-12">
+                <div class="space-y-6">
+                    <!-- Main Search -->
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+                                <input type="text" placeholder="Search for projects, freelancers, or skills..." 
+                                       class="w-full pl-12 pr-4 py-4 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground" data-mock="true">
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <select class="px-4 py-4 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                                <option data-mock="true">All Categories</option>
+                                <option data-mock="true">Web Development</option>
+                                <option data-mock="true">Mobile Development</option>
+                                <option data-mock="true">Design & Creative</option>
+                                <option data-mock="true">Writing & Translation</option>
+                            </select>
+                            <button class="bg-primary text-primary-foreground px-8 py-4 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Filters -->
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <select class="px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                            <option data-mock="true">Budget Range</option>
+                            <option data-mock="true">$500 - $1,000</option>
+                            <option data-mock="true">$1,000 - $3,000</option>
+                            <option data-mock="true">$3,000 - $5,000</option>
+                            <option data-mock="true">$5,000+</option>
+                        </select>
+                        <select class="px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                            <option data-mock="true">Project Length</option>
+                            <option data-mock="true">Less than 1 week</option>
+                            <option data-mock="true">1-4 weeks</option>
+                            <option data-mock="true">1-3 months</option>
+                            <option data-mock="true">3+ months</option>
+                        </select>
+                        <select class="px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                            <option data-mock="true">Experience Level</option>
+                            <option data-mock="true">Entry Level</option>
+                            <option data-mock="true">Intermediate</option>
+                            <option data-mock="true">Expert</option>
+                        </select>
+                        <select class="px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                            <option data-mock="true">Sort by</option>
+                            <option data-mock="true">Most Recent</option>
+                            <option data-mock="true">Highest Rated</option>
+                            <option data-mock="true">Lowest Price</option>
+                            <option data-mock="true">Most Proposals</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Quick Filter Tags -->
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-sm text-muted-foreground">Popular searches:</span>
+                        <button class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm hover:bg-primary/20 transition-colors">
+                            React.js
+                        </button>
+                        <button class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm hover:bg-primary/20 transition-colors">
+                            Logo Design
+                        </button>
+                        <button class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm hover:bg-primary/20 transition-colors">
+                            Mobile App
+                        </button>
+                        <button class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm hover:bg-primary/20 transition-colors">
+                            Content Writing
+                        </button>
+                        <button class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm hover:bg-primary/20 transition-colors">
+                            WordPress
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- @MAP: searchResults.map(result => ( -->
+                <div class="bg-card rounded-xl shadow-lg border border-border overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="font-semibold text-foreground pr-2" data-mock="true">E-commerce Website with Payment Integration</h3>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full whitespace-nowrap dark:bg-green-900 dark:text-green-200">
+                                Active
+                            </span>
+                        </div>
+                        
+                        <p class="text-sm text-muted-foreground mb-4 line-clamp-3" data-mock="true">
+                            Looking for an experienced full-stack developer to build a modern e-commerce platform with secure payment processing, inventory management, and responsive design...
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">React.js</span>
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Node.js</span>
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Stripe</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Budget</span>
+                                <span class="font-semibold text-primary">$3,000 - $5,000</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Proposals</span>
+                                <span class="font-semibold text-foreground">12 submitted</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Posted</span>
+                                <span class="font-semibold text-foreground">3 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-4 bg-muted/30 border-t border-border">
+                        <button class="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                            Submit Proposal
+                        </button>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+                
+                <div class="bg-card rounded-xl shadow-lg border border-border overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="font-semibold text-foreground pr-2" data-mock="true">Mobile App UI/UX Design</h3>
+                            <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full whitespace-nowrap dark:bg-orange-900 dark:text-orange-200">
+                                Urgent
+                            </span>
+                        </div>
+                        
+                        <p class="text-sm text-muted-foreground mb-4 line-clamp-3" data-mock="true">
+                            Need a creative designer to create modern, user-friendly mobile app designs for iOS and Android. Must include wireframes, mockups, and interactive prototypes...
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Figma</span>
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">UI Design</span>
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Prototyping</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Budget</span>
+                                <span class="font-semibold text-primary">$1,500 - $2,500</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Proposals</span>
+                                <span class="font-semibold text-foreground">8 submitted</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Posted</span>
+                                <span class="font-semibold text-foreground">1 day ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-4 bg-muted/30 border-t border-border">
+                        <button class="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                            Submit Proposal
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-card rounded-xl shadow-lg border border-border overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="font-semibold text-foreground pr-2" data-mock="true">Content Writing for Tech Blog</h3>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full whitespace-nowrap dark:bg-blue-900 dark:text-blue-200">
+                                Featured
+                            </span>
+                        </div>
+                        
+                        <p class="text-sm text-muted-foreground mb-4 line-clamp-3" data-mock="true">
+                            Seeking a skilled technical writer to create engaging blog posts about software development, AI, and emerging technologies. Must have experience in tech writing...
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Technical Writing</span>
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">SEO</span>
+                            <span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Blog Content</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Budget</span>
+                                <span class="font-semibold text-primary">$50/article</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Proposals</span>
+                                <span class="font-semibold text-foreground">5 submitted</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Posted</span>
+                                <span class="font-semibold text-foreground">2 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-4 bg-muted/30 border-t border-border">
+                        <button class="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                            Submit Proposal
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="flex items-center justify-center space-x-4 mt-12">
+                <button class="px-4 py-2 text-muted-foreground border border-border rounded-lg hover:bg-secondary transition-colors">
+                    <i class="fas fa-chevron-left mr-2"></i>Previous
+                </button>
+                <div class="flex items-center space-x-2">
+                    <button class="w-10 h-10 bg-primary text-primary-foreground rounded-lg font-medium">1</button>
+                    <button class="w-10 h-10 text-foreground hover:bg-secondary rounded-lg transition-colors">2</button>
+                    <button class="w-10 h-10 text-foreground hover:bg-secondary rounded-lg transition-colors">3</button>
+                    <span class="text-muted-foreground">...</span>
+                    <button class="w-10 h-10 text-foreground hover:bg-secondary rounded-lg transition-colors">12</button>
+                </div>
+                <button class="px-4 py-2 text-foreground border border-border rounded-lg hover:bg-secondary transition-colors">
+                    Next<i class="fas fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: SearchDiscovery -->
+
+    <!-- Footer -->
+    <!-- @COMPONENT: Footer [comprehensive site footer with links and information] -->
+    <footer class="bg-card border-t border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid lg:grid-cols-4 gap-8">
+                <!-- Brand -->
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-primary rounded-lg p-2">
+                            <i class="fas fa-handshake text-primary-foreground text-lg"></i>
+                        </div>
+                        <span class="text-xl font-bold text-foreground">ProConnect</span>
+                    </div>
+                    <p class="text-muted-foreground">
+                        The world's largest marketplace for connecting clients with talented freelancers. Get your projects done by skilled professionals worldwide.
+                    </p>
+                    <div class="flex space-x-4">
+                        <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-twitter text-lg"></i>
+                        </button>
+                        <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-facebook text-lg"></i>
+                        </button>
+                        <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-linkedin text-lg"></i>
+                        </button>
+                        <button class="p-2 text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-instagram text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- For Clients -->
+                <div class="space-y-4">
+                    <h3 class="font-semibold text-foreground">For Clients</h3>
+                    <ul class="space-y-3 text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary transition-colors">How to Hire</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Talent Marketplace</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Project Catalog</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Enterprise</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Payroll Services</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Direct Contracts</a></li>
+                    </ul>
+                </div>
+                
+                <!-- For Freelancers -->
+                <div class="space-y-4">
+                    <h3 class="font-semibold text-foreground">For Freelancers</h3>
+                    <ul class="space-y-3 text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary transition-colors">How to Find Work</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Direct Contracts</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Find Freelance Jobs</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Win Work</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Manage Contracts</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Get Paid</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Resources -->
+                <div class="space-y-4">
+                    <h3 class="font-semibold text-foreground">Resources</h3>
+                    <ul class="space-y-3 text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary transition-colors">Help & Support</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Community</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Affiliate Program</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Free Business Tools</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="border-border my-8">
+            
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex flex-wrap items-center space-x-6 text-muted-foreground text-sm">
+                    <span>© 2023 ProConnect Inc.</span>
+                    <a href="#" class="hover:text-primary transition-colors">Terms of Service</a>
+                    <a href="#" class="hover:text-primary transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-primary transition-colors">Accessibility</a>
+                </div>
+                
+                <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                    <span class="text-sm text-muted-foreground">Secure payments by</span>
+                    <div class="flex items-center space-x-2">
+                        <i class="fab fa-cc-stripe text-2xl text-muted-foreground"></i>
+                        <i class="fab fa-cc-paypal text-2xl text-muted-foreground"></i>
+                        <i class="fab fa-cc-visa text-2xl text-muted-foreground"></i>
+                        <i class="fab fa-cc-mastercard text-2xl text-muted-foreground"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <script>
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fas fa-moon text-sm';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fas fa-sun text-sm';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize theme from localStorage
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').className = 'fas fa-sun text-sm';
+            }
+        })();
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Role Dashboard Toggle
+        function showRole(role) {
+            const clientTab = document.getElementById('client-tab');
+            const freelancerTab = document.getElementById('freelancer-tab');
+            const clientDash = document.getElementById('client-dashboard');
+            const freelancerDash = document.getElementById('freelancer-dashboard');
+            
+            if (role === 'client') {
+                clientTab.className = 'px-6 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground';
+                freelancerTab.className = 'px-6 py-2 rounded-md font-medium transition-colors text-muted-foreground hover:text-foreground';
+                clientDash.classList.remove('hidden');
+                freelancerDash.classList.add('hidden');
+            } else {
+                freelancerTab.className = 'px-6 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground';
+                clientTab.className = 'px-6 py-2 rounded-md font-medium transition-colors text-muted-foreground hover:text-foreground';
+                freelancerDash.classList.remove('hidden');
+                clientDash.classList.add('hidden');
+            }
+        }
+
+        // Smooth scroll for anchor links
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('a[href^="#"]');
+            
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+
+        // TODO: Implement business logic for:
+        // - User authentication and session management
+        // - Real-time messaging with Socket.io
+        // - File upload handling
+        // - Payment processing with Stripe
+        // - Database operations and API calls
+        // - Form validation and submission
+        // - State management with Redux
+        // - Push notifications
+    </script>
+</body>
+</html>

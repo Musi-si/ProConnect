@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root colors for light mode */
+:root {
+  --background: #f0f3f8;
+  --foreground: #0a1f2e;
+  --card: #ffffff;
+  --card-foreground: #0a1f2e;
+  --popover: #ffffff;
+  --popover-foreground: #0a1f2e;
+  --primary: #b76212;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f3f8;
+  --secondary-foreground: #0a1f2e;
+  --muted: #f0f3f8;
+  --muted-foreground: #6b7280;
+  --destructive: #e53935;
+  --destructive-foreground: #ffffff;
+  --border: #b76d12;        /* main border color */
+  --input: #b76d12;         /* input border and outline */
+  --ring: #b76d12;          /* focus ring */
+  --chart-1: #b76d12;
+  --chart-2: #f59e0b;
+  --chart-3: #facc15;
+  --chart-4: #10b981;
+  --chart-5: #ec4899;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a1f2e;
+  --sidebar-primary: #b76d12;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0f3f8;
+  --sidebar-accent-foreground: #b76d12;
+  --sidebar-border: #b76d12;
+  --sidebar-ring: #b76d12;
+  --logo-color: #b76d12;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --radius: 8px;
+}
+
+/* Dark mode colors */
+.dark {
+  --background: #191919;
+  --foreground: #f0f3f8;
+  --card: #1f1f1f;
+  --card-foreground: #f0f3f8;
+  --popover: #1f1f1f;
+  --popover-foreground: #f0f3f8;
+  --primary: #b76d12;
+  --primary-foreground: #ffffff;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #c0c4d1;
+  --muted: #1f1f1f;
+  --muted-foreground: #9ca3af;
+  --destructive: #e53935;
+  --destructive-foreground: #ffffff;
+  --border: #b76d12;
+  --input: #b76d12;
+  --ring: #b76d12;
+  --chart-1: #b76d12;
+  --chart-2: #f59e0b;
+  --chart-3: #facc15;
+  --chart-4: #10b981;
+  --chart-5: #ec4899;
+  --sidebar: #1f1f1f;
+  --sidebar-foreground: #f0f3f8;
+  --sidebar-primary: #b76d12;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1f1f1f;
+  --sidebar-accent-foreground: #b76d12;
+  --sidebar-border: #b76d12;
+  --sidebar-ring: #b76d12;
+  --logo-color: #b76d12;
+}
+
+/* Base styling */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  button {
+    @apply rounded-md px-4 py-2 text-primary-foreground;
+    background-color: var(--primary);  /* fully orange background */
+    color: var(--primary-foreground);  /* white text */
+    border: 1px solid var(--border);   /* optional orange border */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  /* Light mode hover effect */
+  :not(.dark) button:hover {
+    background-color: #ffffff;
+    color: var(--primary);
+    transform: translateY(-1px);
+  }
+
+  /* Dark mode hover effect */
+  .dark button:hover {
+    background-color: #191919;  /* slightly darker orange */
+    color: var(--primary-foreground);
+    transform: translateY(-1px);
+  }
+
+  button:active {
+    background-color: #914f0d;  /* active/pressed shade */
+    transform: translateY(0);
+  }
+
+  input, textarea, select {
+    border: 1px solid var(--input);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.75rem;
+    background-color: var(--card);
+    color: var(--card-foreground);
+    outline-color: var(--ring);
+  }
+
+  hr, .separator {
+    border-color: var(--border);
+  }
+
+  .card {
+    @apply bg-card text-card-foreground rounded-lg p-4 shadow;
+    border: 1px solid var(--border);
+  }
+
+  /* Logo and app name accents */
+  .logo, .app-name {
+    color: var(--logo-color);
+  }
+
+  /* Icon accents */
+  .icon-primary {
+    color: var(--primary);
+  }
+
+  /* Links & interactive elements */
+  a {
+    color: var(--primary);
+  }
+
+  a:hover {
+    color: darken(var(--primary), 10%);
+  }
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Online indicator */
+.online-indicator {
+  position: relative;
+}
+
+.online-indicator::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid var(--background);
+}
+
+@layer components {
+  /* Outline button override for visibility in light mode */
+  .btn-outline, .button-outline, button.btn-outline, button.button-outline {
+    background: transparent !important;
+    color: var(--primary) !important;
+    border: 1.5px solid var(--primary) !important;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .btn-outline:hover, .button-outline:hover,
+  button.btn-outline:hover, button.button-outline:hover {
+    background: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+    border-color: var(--primary) !important;
+  }
+
+  /* Dashboard cards: no border, white bg, strong shadow, glass effect */
+  .dashboard-card {
+    border: none !important;
+    background: rgba(255,255,255,0.95); /* clean white with slight opacity */
+    @apply rounded-lg p-6 shadow-2xl;
+    backdrop-filter: blur(4px);
+    transition: box-shadow 0.2s, transform 0.1s, background 0.2s;
+  }
+  .dark .dashboard-card {
+    background: rgba(31,31,31,0.95); /* subtle overlay for dark mode */
+  }
+  .dashboard-card:hover {
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.04);
+    transform: translateY(-2px) scale(1.01);
+    background: rgba(255,255,255,0.99);
+  }
+
+  .btn-orange-outline {
+    background: #fff !important;
+    color: var(--primary) !important;
+    border: 1.5px solid var(--primary) !important;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .btn-orange-outline:hover, .btn-orange-outline:focus {
+    background: var(--primary) !important;
+    color: #fff !important;
+    border-color: var(--primary) !important;
+  }
+}
