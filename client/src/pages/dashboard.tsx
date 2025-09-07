@@ -53,27 +53,6 @@ export default function Dashboard() {
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             {getDashboardComponent()}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <div className="dashboard-card">
-                <h2 className="text-xl font-bold mb-2">Welcome, {user.firstName}!</h2>
-                <p className="text-muted-foreground mb-4">Here’s a quick overview of your activity.</p>
-                <Button className="btn-orange-outline">View Profile</Button>
-              </div>
-              <div className="dashboard-card">
-                <h3 className="font-semibold mb-1">Your Stats</h3>
-                <ul className="mb-4">
-                  <li>Projects: <span className="font-bold text-[var(--primary)]">12</span></li>
-                  <li>Messages: <span className="font-bold text-[var(--primary)]">3</span></li>
-                </ul>
-                <Button className="btn-orange-outline">See Details</Button>
-              </div>
-              <div className="dashboard-card">
-                <h3 className="font-semibold mb-1">Get Started</h3>
-                <p className="mb-4">Find new opportunities or post a project now.</p>
-                <Button className="btn-orange-outline mr-2 mb-2">Find Work</Button>
-                <Button className="btn-orange-outline">Post Project</Button>
-              </div>
-            </div>
           </div>
         </main>
       </div>

@@ -5,28 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/auth-context";
 import { HandshakeIcon, MailIcon, CheckCircleIcon } from "lucide-react";
+import axios from 'axios';
 
 export default function VerifyEmail() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
   const [isResending, setIsResending] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleResendEmail = async () => {
     setIsResending(true);
     try {
-      // Simulate email resend
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setMessage("Verification email sent! Please check your inbox.");
-    } catch (error) {
-      setMessage("Failed to resend email. Please try again.");
+      // Call your backend endpoint to resend the verification email
+      const response = await axios.post('http://localhost:5000/api/auth/resend-verification', {
+        email: userEmail, // the email of the user who wants to resend
+      });
+
+      if (response.status === 200) {
+        setMessage("Verification email sent! Please check your inbox.");
+      } else {
+        setMessage("Failed to resend email. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Resend email error:", error);
+      setMessage(
+        error.response?.data?.message || "Failed to resend email. Please try again."
+      );
     } finally {
       setIsResending(false);
     }
-  };
-
-  const handleSkipForNow = () => {
-    setLocation("/dashboard");
   };
 
   return (
@@ -77,28 +83,6 @@ export default function VerifyEmail() {
               >
                 {isResending ? "Sending..." : "Resend verification email"}
               </Button>
-
-              <Button
-                onClick={handleSkipForNow}
-                variant="outline"
-                className="w-full border-[var(--primary)] text-[var(--primary)]"
-                data-testid="button-skip-verification"
-              >
-                Skip for now
-              </Button>
-            </div>
-
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                Didn't receive the email? Check your spam folder or{" "}
-                <button
-                  onClick={handleResendEmail}
-                  className="text-white bg-[var(--primary)] hover:bg-orange-700 px-2 py-1 rounded font-semibold transition-colors"
-                  disabled={isResending}
-                >
-                  try again
-                </button>
-              </p>
             </div>
           </CardContent>
         </Card>

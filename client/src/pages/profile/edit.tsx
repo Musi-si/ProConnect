@@ -1,10 +1,16 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,20 +22,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/auth-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  ArrowLeftIcon, 
-  CameraIcon, 
-  PlusIcon, 
+import {
+  ArrowLeftIcon,
+  CameraIcon,
+  PlusIcon,
   XIcon,
   SaveIcon,
   UserIcon,
   MapPinIcon,
   DollarSignIcon,
-  LinkIcon
+  LinkIcon,
 } from "lucide-react";
-import { Link } from "wouter";
 import { z } from "zod";
-import { useEffect } from "react";
 
 const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -47,11 +51,14 @@ export default function EditProfile() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const [skills, setSkills] = useState<string[]>(user?.skills || []);
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>(user?.portfolioLinks || []);
   const [newSkill, setNewSkill] = useState("");
   const [newPortfolioLink, setNewPortfolioLink] = useState("");
   const [error, setError] = useState("");
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState(user?.avatar || "");
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -71,7 +78,7 @@ export default function EditProfile() {
     },
   });
 
-  // Update form when user data changes
+  // Reset form whenever user changes
   useEffect(() => {
     if (user) {
       form.reset({
@@ -87,9 +94,22 @@ export default function EditProfile() {
     }
   }, [user, form]);
 
+  // Mutation for updating profile
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: ProfileFormData & { skills: string[]; portfolioLinks: string[] }) => {
-      const response = await apiRequest("PUT", "/api/users/profile", data);
+    mutationFn: async (
+      data: ProfileFormData & { skills: string[]; portfolioLinks: string[] }
+    ) => {
+      const response = await apiRequest("PUT", "/api/users/profile", {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        bio: data.bio,
+        location: data.location,
+        hourlyRate: data.hourlyRate,
+        avatar: data.avatar,
+        skills: data.skills,
+        portfolioLinks: data.portfolioLinks,
+      });
+      if (!response.ok) throw new Error("Failed to update profile");
       return response.json();
     },
     onSuccess: (data) => {
@@ -97,8 +117,8 @@ export default function EditProfile() {
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
       });
-      // Update the auth context with new user data
-      queryClient.setQueryData(['/api/auth/me'], { user: data.user });
+      // Update user in cache
+      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
     },
     onError: (error: any) => {
       setError(error.message || "Failed to update profile. Please try again.");
@@ -110,46 +130,63 @@ export default function EditProfile() {
     },
   });
 
-  const handleSubmit = (data: ProfileFormData) => {
+  const handleSubmit = async (data: ProfileFormData) => {
+    let avatarUrl = data.avatar;
+
+    // Upload image to Cloudinary if a new file is selected
+    if (profilePictureFile) {
+      const formData = new FormData();
+      formData.append("file", profilePictureFile);
+      formData.append("upload_preset", "profile_pics"); // replace with your preset
+
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/de9wmjkut/image/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        const result = await res.json();
+        avatarUrl = result.secure_url; // Cloudinary URL
+      } catch (error) {
+        toast({ title: "Upload failed", description: "Could not upload image", variant: "destructive" });
+        return;
+      }
+    }
+
     updateProfileMutation.mutate({
       ...data,
+      avatar: avatarUrl,
       skills,
       portfolioLinks,
     });
   };
 
+  // Helpers for skills & portfolio links
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
       setSkills([...skills, newSkill.trim()]);
       setNewSkill("");
     }
   };
-
   const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(skill => skill !== skillToRemove));
+    setSkills(skills.filter((skill) => skill !== skillToRemove));
   };
-
   const addPortfolioLink = () => {
     if (newPortfolioLink.trim() && !portfolioLinks.includes(newPortfolioLink.trim())) {
       setPortfolioLinks([...portfolioLinks, newPortfolioLink.trim()]);
       setNewPortfolioLink("");
     }
   };
-
   const removePortfolioLink = (linkToRemove: string) => {
-    setPortfolioLinks(portfolioLinks.filter(link => link !== linkToRemove));
+    setPortfolioLinks(portfolioLinks.filter((link) => link !== linkToRemove));
   };
-
   const handleKeyPress = (e: React.KeyboardEvent, action: () => void) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       action();
     }
   };
-
-  const getInitials = (firstName?: string, lastName?: string) => {
-    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
-  };
+  const getInitials = (firstName?: string, lastName?: string) =>
+    `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
 
   if (isLoading) {
     return (
@@ -159,14 +196,11 @@ export default function EditProfile() {
     );
   }
 
-  if (!isAuthenticated || !user) {
-    return null;
-  }
+  if (!isAuthenticated || !user) return null;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
@@ -186,7 +220,7 @@ export default function EditProfile() {
             <div className="flex-1 flex justify-center">
               <h1 className="text-3xl font-bold text-[var(--primary)]">Edit Profile</h1>
             </div>
-            <div className="flex-1" /> {/* Spacer for symmetry */}
+            <div className="flex-1" />
           </div>
           <p className="text-muted-foreground text-center">
             Keep your profile up to date to attract the right opportunities
@@ -212,39 +246,44 @@ export default function EditProfile() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Profile Picture */}
+              {/* Profile */}
               <div className="flex items-center space-x-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={form.watch('avatar')} alt="Profile" />
+                  <AvatarImage src={previewUrl} alt="Profile" />
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                    {getInitials(form.watch('firstName'), form.watch('lastName'))}
+                    {getInitials(form.watch("firstName"), form.watch("lastName"))}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                    data-testid="upload-avatar"
-                  >
-                    <CameraIcon className="mr-2 h-4 w-4" />
-                    Change Photo
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    JPG, PNG or GIF. Max size 5MB.
-                  </p>
+                  <label htmlFor="profilePicture" className="inline-flex items-center gap-2 cursor-pointer border border-gray-300 rounded px-3 py-1 hover:bg-gray-100">
+                    <CameraIcon className="h-4 w-4" /> Change Photo
+                  </label>
+                  <input
+                    type="file"
+                    id="profilePicture"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast({ title: "File too large", description: "Max file size is 5MB", variant: "destructive" });
+                          return;
+                        }
+                        setProfilePictureFile(file);
+                        setPreviewUrl(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                  <p className="text-sm text-muted-foreground">JPG, PNG or GIF. Max size 5MB.</p>
                 </div>
               </div>
 
-              {/* Name Fields */}
+              {/* Names */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    {...form.register("firstName")}
-                    data-testid="first-name-input"
-                  />
+                  <Input id="firstName" {...form.register("firstName")} />
                   {form.formState.errors.firstName && (
                     <p className="text-sm text-destructive">
                       {form.formState.errors.firstName.message}
@@ -253,11 +292,7 @@ export default function EditProfile() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    {...form.register("lastName")}
-                    data-testid="last-name-input"
-                  />
+                  <Input id="lastName" {...form.register("lastName")} />
                   {form.formState.errors.lastName && (
                     <p className="text-sm text-destructive">
                       {form.formState.errors.lastName.message}
@@ -269,45 +304,23 @@ export default function EditProfile() {
               {/* Bio */}
               <div className="space-y-2">
                 <Label htmlFor="bio">Professional Bio</Label>
-                <Textarea
-                  id="bio"
-                  rows={4}
-                  placeholder="Tell clients about your experience, skills, and what makes you unique..."
-                  {...form.register("bio")}
-                  data-testid="bio-textarea"
-                />
-                <p className="text-sm text-muted-foreground">
-                  A compelling bio helps clients understand your expertise and decide to hire you.
-                </p>
+                <Textarea id="bio" rows={4} {...form.register("bio")} />
               </div>
 
-              {/* Location and Rate */}
+              {/* Location & Rate */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="location" className="flex items-center gap-2">
-                    <MapPinIcon className="h-4 w-4" />
-                    Location
+                    <MapPinIcon className="h-4 w-4" /> Location
                   </Label>
-                  <Input
-                    id="location"
-                    placeholder="e.g., New York, USA"
-                    {...form.register("location")}
-                    data-testid="location-input"
-                  />
+                  <Input id="location" {...form.register("location")} />
                 </div>
-                {user.role === 'freelancer' && (
+                {user.role === "freelancer" && (
                   <div className="space-y-2">
                     <Label htmlFor="hourlyRate" className="flex items-center gap-2">
-                      <DollarSignIcon className="h-4 w-4" />
-                      Hourly Rate
+                      <DollarSignIcon className="h-4 w-4" /> Hourly Rate
                     </Label>
-                    <Input
-                      id="hourlyRate"
-                      type="number"
-                      placeholder="50"
-                      {...form.register("hourlyRate")}
-                      data-testid="hourly-rate-input"
-                    />
+                    <Input id="hourlyRate" type="number" {...form.register("hourlyRate")} />
                   </div>
                 )}
               </div>
@@ -315,133 +328,88 @@ export default function EditProfile() {
           </Card>
 
           {/* Skills */}
-          {user.role === 'freelancer' && (
+          {user.role === "freelancer" && (
             <Card className="bg-white/95 dark:bg-card/95 shadow-2xl">
               <CardHeader>
                 <CardTitle>Skills & Expertise</CardTitle>
-                <CardDescription>
-                  Add skills that showcase your expertise and help clients find you
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Current Skills */}
                 {skills.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Your Skills</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {skills.map((skill, index) => (
-                        <Badge key={index} variant="secondary" className="px-3 py-1">
-                          {skill}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="ml-1 h-auto p-0 hover:bg-transparent"
-                            onClick={() => removeSkill(skill)}
-                            data-testid={`remove-skill-${skill}`}
-                          >
-                            <XIcon className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.map((skill, i) => (
+                      <Badge key={i} variant="secondary" className="px-3 py-1">
+                        {skill}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSkill(skill)}
+                          className="ml-1 h-auto p-0"
+                        >
+                          <XIcon className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
                   </div>
                 )}
-
-                {/* Add Skills */}
-                <div className="space-y-2">
-                  <Label>Add Skills</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      onKeyPress={(e) => handleKeyPress(e, addSkill)}
-                      placeholder="e.g., React.js, Node.js, Python"
-                      data-testid="add-skill-input"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                      onClick={addSkill}
-                      disabled={!newSkill.trim()}
-                      data-testid="add-skill-button"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={newSkill}
+                    onChange={(e) => setNewSkill(e.target.value)}
+                    onKeyPress={(e) => handleKeyPress(e, addSkill)}
+                    placeholder="e.g., React.js, Node.js"
+                  />
+                  <Button type="button" variant="outline" onClick={addSkill} disabled={!newSkill.trim()}>
+                    <PlusIcon className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
           {/* Portfolio Links */}
-          {user.role === 'freelancer' && (
+          {user.role === "freelancer" && (
             <Card className="bg-white/95 dark:bg-card/95 shadow-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <LinkIcon className="h-5 w-5" />
-                  Portfolio & Work Samples
+                  <LinkIcon className="h-5 w-5" /> Portfolio & Work Samples
                 </CardTitle>
-                <CardDescription>
-                  Add links to your best work to showcase your abilities
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Current Links */}
                 {portfolioLinks.length > 0 && (
                   <div className="space-y-2">
-                    <Label>Portfolio Links</Label>
-                    <div className="space-y-2">
-                      {portfolioLinks.map((link, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 rounded bg-white/90 dark:bg-card/90 shadow-inner">
-                          <LinkIcon className="h-4 w-4 text-muted-foreground" />
-                          <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-[var(--primary)] hover:underline flex-1 truncate"
-                          >
-                            {link}
-                          </a>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removePortfolioLink(link)}
-                            data-testid={`remove-portfolio-${index}`}
-                          >
-                            <XIcon className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                    {portfolioLinks.map((link, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 p-2 rounded bg-white/90 dark:bg-card/90 shadow-inner"
+                      >
+                        <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                        <a href={link} target="_blank" className="text-sm text-[var(--primary)] flex-1 truncate">
+                          {link}
+                        </a>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removePortfolioLink(link)}>
+                          <XIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
-
-                {/* Add Links */}
-                <div className="space-y-2">
-                  <Label>Add Portfolio Link</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={newPortfolioLink}
-                      onChange={(e) => setNewPortfolioLink(e.target.value)}
-                      onKeyPress={(e) => handleKeyPress(e, addPortfolioLink)}
-                      placeholder="https://yourportfolio.com"
-                      type="url"
-                      data-testid="add-portfolio-input"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                      onClick={addPortfolioLink}
-                      disabled={!newPortfolioLink.trim()}
-                      data-testid="add-portfolio-button"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={newPortfolioLink}
+                    onChange={(e) => setNewPortfolioLink(e.target.value)}
+                    onKeyPress={(e) => handleKeyPress(e, addPortfolioLink)}
+                    placeholder="https://yourportfolio.com"
+                    type="url"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addPortfolioLink}
+                    disabled={!newPortfolioLink.trim()}
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -458,16 +426,8 @@ export default function EditProfile() {
               type="submit"
               className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
               disabled={updateProfileMutation.isPending}
-              data-testid="save-profile"
             >
-              {updateProfileMutation.isPending ? (
-                "Saving..."
-              ) : (
-                <>
-                  <SaveIcon className="mr-2 h-4 w-4" />
-                  Save Changes
-                </>
-              )}
+              {updateProfileMutation.isPending ? "Saving..." : <><SaveIcon className="mr-2 h-4 w-4" /> Save Changes</>}
             </Button>
           </div>
         </form>

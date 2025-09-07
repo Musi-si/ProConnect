@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { authApi, getAuthToken, setAuthToken, removeAuthToken } from "@/lib/auth";
+import { authApi } from "@/lib/auth";
 import { useLocation } from "wouter";
 import type { User, LoginData, RegisterData } from "@shared/schema";
 
@@ -21,14 +21,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    enabled: !!getAuthToken(),
+    enabled: !!(authApi.getAuthToken()),
     retry: false,
   });
 
   const loginMutation = useMutation({
     mutationFn: authApi.login,
     onSuccess: (data) => {
-      setAuthToken(data.token);
+      authApi.setAuthToken(data.token);
       queryClient.setQueryData(['/api/auth/me'], { user: data.user });
       setLocation('/dashboard');
     },
@@ -37,14 +37,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: (data) => {
-      setAuthToken(data.token);
+      authApi.setAuthToken(data.token);
       queryClient.setQueryData(['/api/auth/me'], { user: data.user });
       setLocation('/verify-email');
     },
   });
 
   const logout = () => {
-    removeAuthToken();
+    authApi.removeAuthToken();
     queryClient.clear();
     setLocation('/');
   };

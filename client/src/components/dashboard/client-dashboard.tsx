@@ -92,49 +92,6 @@ export function ClientDashboard() {
               </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-white/95 dark:bg-card/95 shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingUpIcon className="h-5 w-5" />
-                Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1">
-                <li>
-                  <Link
-                    href="/projects/create"
-                    className="flex items-center px-3 py-2 rounded-md text-foreground font-medium transition-colors hover:text-[var(--primary)]"
-                    data-testid="post-project-link"
-                  >
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Post a Project
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/freelancers/browse"
-                    className="flex items-center px-3 py-2 rounded-md text-foreground font-medium transition-colors hover:text-[var(--primary)]"
-                    data-testid="find-freelancers-link"
-                  >
-                    <SearchIcon className="mr-2 h-4 w-4" />
-                    Find Freelancers
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/messages"
-                    className="flex items-center px-3 py-2 rounded-md text-foreground font-medium transition-colors hover:text-[var(--primary)]"
-                    data-testid="client-messages-link"
-                  >
-                    <MessageSquareIcon className="mr-2 h-4 w-4" />
-                    Messages
-                  </Link>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Recent Projects */}
