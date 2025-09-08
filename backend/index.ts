@@ -15,6 +15,9 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import sequelize from './config/db';
 
+// Swagger (optional)
+import { swaggerUi, swaggerSpec } from './swagger';
+
 // Import model initializers
 import { initUser } from './models/user';
 import { initMessage } from './models/message';
@@ -33,9 +36,6 @@ import reviewRoutes from './routes/review';
 import milestoneRoutes from './routes/milestone';
 import notificationRoutes from './routes/notification';
 import userRoutes from './routes/user';
-
-// Swagger (optional)
-import { swaggerUi, swaggerSpec } from './swagger';
 
 const app = express();
 const server = http.createServer(app);

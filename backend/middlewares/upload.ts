@@ -5,10 +5,10 @@ import multer from "multer";
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "profile_pictures",  // all profile pics stored here
+    folder: "profile_pics",  // all profile pics stored here
     allowed_formats: ["jpg", "jpeg", "png"],
     transformation: [{ width: 500, height: 500, crop: "limit" }],
-  },
+  } as any,
 });
 
 const upload = multer({
