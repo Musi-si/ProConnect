@@ -3,17 +3,18 @@ import { useMutation } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { ProjectForm } from "@/components/projects/project-form";
 import { useAuth } from "@/contexts/auth-context";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useEffect } from "react";
+import { useProject } from "../../contexts/project-context";
 
 export default function CreateProject() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { addProject } = useProject(); // from context
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -30,25 +31,22 @@ export default function CreateProject() {
   }, [isAuthenticated, isLoading, user, setLocation, toast]);
 
   const createProjectMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/projects", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Project Created!",
-        description: "Your project has been posted successfully.",
-      });
-      setLocation(`/projects/${data.project.id}`);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Create Project",
-        description: error.message || "Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+  mutationFn: addProject,
+  onSuccess: (data) => {
+    toast({
+      title: "Project Created!",
+      description: "Your project has been posted successfully.",
+    });
+    // setLocation(`/projects/${data.id}`); // assuming backend returns _id
+  },
+  onError: (error: any) => {
+    toast({
+      title: "Failed to Create Project",
+      description: error.message || "Please try again.",
+      variant: "destructive",
+    });
+  },
+});
 
   if (isLoading) {
     return (

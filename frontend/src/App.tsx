@@ -17,6 +17,7 @@ import BrowseFreelancers from "@/pages/freelancers/browse";
 import EditProfile from "@/pages/profile/edit";
 import Messages from "@/pages/messages";
 import NotFound from "@/pages/not-found";
+import { ProjectProvider } from "./contexts/project-context";
 
 function Router() {
   return (
@@ -43,8 +44,10 @@ function App() {
       <TooltipProvider>
         <ThemeProvider>
           <AuthProvider>
-            <Toaster />
-            <Router />
+            <ProjectProvider> {/* <-- ADD THIS */}
+              <Toaster />
+              <Router />
+            </ProjectProvider>
           </AuthProvider>
         </ThemeProvider>
       </TooltipProvider>

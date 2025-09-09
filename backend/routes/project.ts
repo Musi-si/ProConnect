@@ -15,7 +15,7 @@ const projectsController = new ProjectsController();
 
 /**
  * @swagger
- * /api/projects:
+ * /api/projects/all:
  *   get:
  *     summary: Get all projects
  *     tags: [Projects]
@@ -23,7 +23,7 @@ const projectsController = new ProjectsController();
  *       200:
  *         description: List of all projects
  */
-router.get('/', projectsController.getAllProjects.bind(projectsController));
+router.get('/all', projectsController.getAllProjects.bind(projectsController));
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ router.get('/:id', projectsController.getProjectById.bind(projectsController));
  *           schema:
  *             type: object
  *             required:
- *               - name
+ *               - title
  *               - description
  *             properties:
  *               title:
@@ -73,9 +73,17 @@ router.get('/:id', projectsController.getProjectById.bind(projectsController));
  *               budget:
  *                 type: number
  *                 example: 7500
- *               clientId:
- *                 type: number
- *                 example: 1
+ *               category:
+ *                 type: string
+ *                 example: "Web Development"
+ *               skills:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["React", "NodeJS"]
+ *               timeline:
+ *                 type: string
+ *                 example: "2 weeks"
  *     responses:
  *       201:
  *         description: Project created successfully

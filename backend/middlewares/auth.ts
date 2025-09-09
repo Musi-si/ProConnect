@@ -1,5 +1,6 @@
 // middlewares.ts
 import { Request, Response, NextFunction } from 'express';
+import { User } from '../models/user'; // Adjust the path as necessary
 import jwt from 'jsonwebtoken';
 
 // Replace with your actual secret or import from config/environment
@@ -14,7 +15,7 @@ export interface JwtPayload {
 
 // Extend Express Request
 export interface AuthRequest extends Request {
-  user?: JwtPayload;
+  user?: User;
 }
 
 /**

@@ -130,12 +130,19 @@ export function ProjectForm({ onSubmit, isLoading, initialData }: ProjectFormPro
               onValueChange={(value) => form.setValue("category", value)}
               disabled={isLoading}
             >
-              <SelectTrigger data-testid="project-category-select">
+              <SelectTrigger
+                data-testid="project-category-select"
+                className="bg-white dark:bg-card/80 border border-orange-300 text-orange-900 dark:text-white"
+              >
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="backdrop-blur-md bg-white/80 dark:bg-card/80 shadow-lg">
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
+                  <SelectItem
+                    key={category}
+                    value={category}
+                    className="hover:bg-orange-500 hover:text-white transition-colors"
+                  >
                     {category}
                   </SelectItem>
                 ))}
@@ -178,7 +185,7 @@ export function ProjectForm({ onSubmit, isLoading, initialData }: ProjectFormPro
                 <p className="text-sm text-destructive">{form.formState.errors.budget.message}</p>
               )}
             </div>
-
+            
             <div className="space-y-2">
               <Label htmlFor="timeline">Timeline *</Label>
               <Select 
@@ -186,12 +193,19 @@ export function ProjectForm({ onSubmit, isLoading, initialData }: ProjectFormPro
                 onValueChange={(value) => form.setValue("timeline", value)}
                 disabled={isLoading}
               >
-                <SelectTrigger data-testid="project-timeline-select">
-                  <SelectValue placeholder="Select timeline" />
-                </SelectTrigger>
-                <SelectContent>
+              <SelectTrigger
+                data-testid="project-category-select"
+                className="bg-white dark:bg-card/80 border border-orange-300 text-orange-900 dark:text-white"
+              >
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+                <SelectContent className="backdrop-blur-md bg-white/80 dark:bg-card/80 shadow-lg">
                   {timelines.map((timeline) => (
-                    <SelectItem key={timeline} value={timeline}>
+                    <SelectItem
+                      key={timeline}
+                      value={timeline}
+                      className="hover:bg-orange-500 hover:text-white transition-colors"
+                    >
                       {timeline}
                     </SelectItem>
                   ))}

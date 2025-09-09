@@ -94,7 +94,7 @@ const PORT = 5000;
 server.listen(PORT, '127.0.0.1', async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log(`✅ MySQL connection established & models synchronized.`);
     console.log(`🚀 ProConnect backend running on port ${PORT}`);
   } catch (err) {

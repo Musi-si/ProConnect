@@ -1,15 +1,74 @@
 import { Request, Response } from 'express';
 import { Project } from '../models/project';
+import { AuthRequest } from 'middlewares/auth';
+import { Op } from "sequelize";
 
 export class ProjectsController {
-  // Get all projects
+  // Get all projects with optional filters
   async getAllProjects(req: Request, res: Response) {
     try {
-      const projects = await Project.findAll();
-      res.json(projects);
+      const {
+        q,
+        category,
+        skills,
+        budgetMin,
+        budgetMax,
+        timeline,
+        status,
+        limit,
+        offset,
+      } = req.query;
+
+      const where: any = {};
+
+      if (q) {
+        where.title = { [Op.iLike]: `%${q}%` }; // case-insensitive search
+      }
+
+      if (category) {
+        where.category = category;
+      }
+
+      if (skills) {
+        // assuming skills is stored as array in DB (JSON/ARRAY column)
+        where.skills = {
+          [Op.contains]: Array.isArray(skills) ? skills : [skills],
+        };
+      }
+
+      if (budgetMin || budgetMax) {
+        where.budget = {};
+        if (budgetMin) where.budget[Op.gte] = Number(budgetMin);
+        if (budgetMax) where.budget[Op.lte] = Number(budgetMax);
+      }
+
+      if (timeline) {
+        where.timeline = timeline;
+      }
+
+      if (status) {
+        where.status = status;
+      }
+
+      const projects = await Project.findAll({
+        where,
+        limit: limit ? Number(limit) : 20,
+        offset: offset ? Number(offset) : 0,
+        order: [["createdAt", "DESC"]],
+      });
+
+      // Parse skills field so frontend always gets an array
+      const parsedProjects = projects.map(project => ({
+        ...project.toJSON(),
+        skills: typeof project.skills === "string" ? JSON.parse(project.skills || "[]") : project.skills,
+        attachments: typeof project.attachments === "string" ? JSON.parse(project.attachments || "[]") : project.attachments,
+        milestones: typeof project.milestones === "string" ? JSON.parse(project.milestones || "[]") : project.milestones,
+      }));
+
+      res.json(parsedProjects);
     } catch (error) {
-      console.error('Get projects error:', error);
-      res.status(500).json({ message: 'Server error', error });
+      console.error("Get projects error:", error);
+      res.status(500).json({ message: "Server error", error });
     }
   }
 
@@ -26,9 +85,18 @@ export class ProjectsController {
   }
 
   // Create a new project
-  async createProject(req: Request, res: Response) {
+  async createProject(req: AuthRequest, res: Response) {
     try {
-      const project = await Project.create(req.body);
+      // Extract clientId from the authenticated user
+      const clientId = req.user?.id; // `id` comes from decoded JWT
+      if (!clientId) {
+        return res.status(401).json({ message: 'Unauthorized: no user info found' });
+      }
+
+      // Merge clientId into project data
+      const projectData = { ...req.body, clientId };
+
+      const project = await Project.create(projectData);
       res.status(201).json(project);
     } catch (error) {
       console.error('Create project error:', error);

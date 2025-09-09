@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: authApi.login,
     onSuccess: (data) => {
-      authApi.setAuthToken(data.token);
+      localStorage.setItem("token", data.token); // save token
       queryClient.setQueryData(['/api/auth/me'], { user: data.user });
       setLocation('/dashboard');
     },
@@ -37,14 +37,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: (data) => {
-      authApi.setAuthToken(data.token);
+      localStorage.setItem("token", data.token); // save token
       queryClient.setQueryData(['/api/auth/me'], { user: data.user });
       setLocation('/verify-email');
     },
   });
 
   const logout = () => {
-    authApi.removeAuthToken();
+    localStorage.removeItem("token");
     queryClient.clear();
     setLocation('/');
   };

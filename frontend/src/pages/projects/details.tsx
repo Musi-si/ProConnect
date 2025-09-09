@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { ProposalForm } from "@/components/projects/proposal-form";
 import { ProposalList } from "@/components/projects/proposal-list";
@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
+import { useProject } from "@/contexts/project-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -30,26 +30,17 @@ import {
 
 export default function ProjectDetails() {
   const params = useParams();
-  const projectId = params.id!;
+  const projectId = Number(params.id);
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Fetch project details
-  const { data: projectData, isLoading: projectLoading } = useQuery({
-    queryKey: ['/api/projects', projectId],
-  });
+  const { projects, isLoading: projectsLoading } = useProject();
+  const project = projects.find(p => p.id === projectId) || null;
 
-  // Fetch proposals (for clients)
-  const { data: proposalsData, isLoading: proposalsLoading } = useQuery({
-    queryKey: ['/api/projects', projectId, 'proposals'],
-    enabled: user?.role === 'client',
-  });
-
-  const project = projectData?.project;
-  const proposals = proposalsData?.proposals || [];
+  const proposals = project?.proposals || [];
 
   // Accept proposal mutation
   const acceptProposalMutation = useMutation({
@@ -62,8 +53,7 @@ export default function ProjectDetails() {
         title: "Proposal Accepted",
         description: "The freelancer has been notified and the project has begun.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'proposals'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
   });
 
@@ -82,9 +72,9 @@ export default function ProjectDetails() {
     },
   });
 
-  if (projectLoading) {
+  if (projectsLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
@@ -92,7 +82,7 @@ export default function ProjectDetails() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
           <p className="text-muted-foreground mb-4">The project you're looking for doesn't exist.</p>
@@ -133,10 +123,14 @@ export default function ProjectDetails() {
   const isProjectOwner = user?.id === project.clientId;
   const isAssignedFreelancer = user?.id === project.freelancerId;
 
+  // Ensure skills and attachments are parsed correctly
+  const skills = Array.isArray(project.skills) ? project.skills : [];
+  const attachments = Array.isArray(project.attachments) ? project.attachments : [];
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <div className="mb-6">
@@ -157,9 +151,7 @@ export default function ProjectDetails() {
                   <div className="flex-1">
                     <CardTitle className="text-2xl mb-2">{project.title}</CardTitle>
                     <div className="flex items-center space-x-2 mb-4">
-                      <Badge variant="outline" className="capitalize">
-                        {project.category}
-                      </Badge>
+                      <Badge variant="outline" className="capitalize">{project.category}</Badge>
                       <Badge className={getStatusColor(project.status)} variant="secondary">
                         {getStatusText(project.status)}
                       </Badge>
@@ -218,25 +210,23 @@ export default function ProjectDetails() {
                   </div>
 
                   {/* Skills */}
-                  {project.skills && project.skills.length > 0 && (
+                  {skills.length > 0 && (
                     <div>
                       <h3 className="font-semibold mb-3">Required Skills</h3>
                       <div className="flex flex-wrap gap-2">
-                        {project.skills.map((skill: string, index: number) => (
-                          <Badge key={index} variant="secondary">
-                            {skill}
-                          </Badge>
+                        {skills.map((skill: string, index: number) => (
+                          <Badge key={index} variant="secondary">{skill}</Badge>
                         ))}
                       </div>
                     </div>
                   )}
 
                   {/* Attachments */}
-                  {project.attachments && project.attachments.length > 0 && (
+                  {attachments.length > 0 && (
                     <div>
                       <h3 className="font-semibold mb-3">Attachments</h3>
                       <div className="space-y-2">
-                        {project.attachments.map((attachment: string, index: number) => (
+                        {attachments.map((attachment: string, index: number) => (
                           <div key={index} className="flex items-center space-x-2 p-2 bg-muted/50 rounded">
                             <FileTextIcon className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">Attachment {index + 1}</span>
@@ -249,7 +239,7 @@ export default function ProjectDetails() {
               </CardContent>
             </Card>
           </div>
-
+          
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Client Info */}
@@ -381,7 +371,7 @@ export default function ProjectDetails() {
             <TabsContent value="proposals" className="mt-6">
               <ProposalList
                 proposals={proposals}
-                isLoading={proposalsLoading}
+                // isLoading={proposalsLoading}
                 onAccept={acceptProposalMutation.mutateAsync}
                 showActions={true}
               />
