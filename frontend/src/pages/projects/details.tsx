@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useProject } from "@/contexts/project-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+  import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowLeftIcon,
   CalendarIcon,
@@ -39,7 +40,6 @@ export default function ProjectDetails() {
 
   const { projects, isLoading: projectsLoading } = useProject();
   const project = projects.find(p => p.id === projectId) || null;
-
   const proposals = project?.proposals || [];
 
   // Accept proposal mutation
@@ -74,7 +74,7 @@ export default function ProjectDetails() {
 
   if (projectsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
@@ -132,20 +132,42 @@ export default function ProjectDetails() {
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button */}
-        <div className="mb-6">
-          <Link href="/projects/browse">
-            <Button variant="outline" size="sm">
-              <ArrowLeftIcon className="mr-2 h-4 w-4" />
-              Back to Projects
-            </Button>
-          </Link>
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
+              <Link href="/dashboard">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition mb-3"
+                >
+                  <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <Link href="/projects/browse">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
+                >
+                  <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                  Back to Projects
+                </Button>
+              </Link>
+            </div>
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-3xl font-bold text-[var(--primary)]">{project.title}</h1>
+            </div>
+            <div className="flex-1" /> {/* Spacer for symmetry */}
+          </div>
         </div>
 
-        {/* Project Header */}
+        {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="bg-white/95 dark:bg-card/95 shadow-2xl">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -158,7 +180,7 @@ export default function ProjectDetails() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition">
                       <EyeIcon className="mr-2 h-4 w-4" />
                       234 views
                     </Button>
@@ -172,7 +194,7 @@ export default function ProjectDetails() {
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">
                         <DollarSignIcon className="h-4 w-4 text-primary mr-1" />
-                        <span className="font-bold text-lg text-primary">${project.budget}</span>
+                        <span className="font-bold text-lg text-primary">{project.budget}</span>
                       </div>
                       <div className="text-sm text-muted-foreground">Budget</div>
                     </div>
@@ -243,40 +265,54 @@ export default function ProjectDetails() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Client Info */}
-            <Card>
+            <Card className="bg-white/95 dark:bg-card/95 shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-lg">About the Client</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center space-x-3 mb-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src="" alt="Client" />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      CL
-                    </AvatarFallback>
+                    {project.clientAvatar ? (
+                      <AvatarImage
+                        src={project.clientAvatar}
+                        alt={project.clientName || "Client"}
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {project.clientName?.split(" ").map(n => n[0]).join("") || "CL"}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <div>
-                    <div className="font-semibold">Client Name</div>
+                    <div className="font-semibold">{project.clientName}</div>
                     <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                       <StarIcon className="h-3 w-3 text-yellow-400 fill-current" />
-                      <span>4.8 (23 reviews)</span>
+                      <span>
+                        {project.clientRating ? parseFloat(project.clientRating).toFixed(1) : "N/A"} (
+                        {project.clientReviewCount || 0} reviews)
+                      </span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2 text-sm">
+                  {/* Optional: if you have location stored elsewhere */}
                   <div className="flex items-center space-x-2">
                     <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-                    <span>United States</span>
+                    <span>{project.clientLocation}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <UserIcon className="h-4 w-4 text-muted-foreground" />
-                    <span>12 projects posted</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
-                    <span>$25,000 total spent</span>
-                  </div>
+                  {project.projectsPosted != null && (
+                    <div className="flex items-center space-x-2">
+                      <UserIcon className="h-4 w-4 text-muted-foreground" />
+                      <span>{project.projectsPosted} projects posted</span>
+                    </div>
+                  )}
+                  {project.totalSpent != null && (
+                    <div className="flex items-center space-x-2">
+                      <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
+                      <span>${Number(project.totalSpent).toLocaleString()} total spent</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -284,7 +320,7 @@ export default function ProjectDetails() {
             {/* Action Buttons */}
             {canSubmitProposal && (
               <Button 
-                className="w-full" 
+                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition" 
                 size="lg"
                 onClick={() => setActiveTab("submit-proposal")}
                 data-testid="submit-proposal-button"
@@ -296,7 +332,7 @@ export default function ProjectDetails() {
             {isProjectOwner && project.status === 'open' && (
               <Button 
                 variant="outline" 
-                className="w-full"
+                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
                 onClick={() => setActiveTab("proposals")}
                 data-testid="view-proposals-button"
               >
@@ -308,7 +344,7 @@ export default function ProjectDetails() {
             {(isProjectOwner || isAssignedFreelancer) && project.status === 'in_progress' && (
               <Button 
                 variant="outline" 
-                className="w-full"
+                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
                 onClick={() => setActiveTab("messages")}
                 data-testid="open-messages-button"
               >
@@ -397,6 +433,37 @@ export default function ProjectDetails() {
             </>
           )}
         </Tabs>
+
+        {/* Help Section (optional, for consistency) */}
+        <div className="mt-12 rounded-lg p-8" style={{ background: "#ffe0b2" }}>
+          <h2 className="text-xl font-semibold mb-4 text-center text-[var(--primary)]">Tips for Working with Freelancers</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h3 className="font-medium">Communicate Clearly</h3>
+              <p className="text-sm text-muted-foreground">
+                Set clear expectations and maintain open communication throughout the project.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <h3 className="font-medium">Review Proposals Carefully</h3>
+              <p className="text-sm text-muted-foreground">
+                Evaluate proposals based on experience, skills, and previous work.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <h3 className="font-medium">Set Milestones</h3>
+              <p className="text-sm text-muted-foreground">
+                Break the project into milestones for better tracking and payment security.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <h3 className="font-medium">Give Feedback</h3>
+              <p className="text-sm text-muted-foreground">
+                Provide constructive feedback to help freelancers deliver their best work.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

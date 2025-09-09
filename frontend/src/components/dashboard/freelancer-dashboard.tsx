@@ -51,7 +51,7 @@ export function FreelancerDashboard() {
       <div className="bg-gradient-to-r from-primary to-orange-600 text-primary-foreground p-6 rounded-xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
+            <h1 className="text-2xl font-bold mb-2">Welcome back, {user.username}!</h1>
             <p className="opacity-90">Ready to find your next great project?</p>
           </div>
           <div className="flex items-center space-x-6 text-center">

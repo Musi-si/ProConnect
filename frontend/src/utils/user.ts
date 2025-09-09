@@ -32,13 +32,11 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
   }
 }
 
-
 // Update the logged-in user's profile
-export const updateProfile = async (
-  updates: Partial<User>
-): Promise<User> => {
+export const updateProfile = async (updates: Partial<User>): Promise<User> => {
   try {
-    const res = await api.put('/users/profile', updates)
+    const token = localStorage.getItem("token");
+    const res = await api.put('/users/profile', updates, { Authorization: `Bearer ${token}` })
     return res.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Failed to update profile')

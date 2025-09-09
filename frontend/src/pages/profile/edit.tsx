@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import {
   Card,
@@ -19,8 +18,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/contexts/auth-context";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeftIcon,
@@ -34,6 +31,7 @@ import {
   LinkIcon,
 } from "lucide-react";
 import { z } from "zod";
+import { useUser } from "@/contexts/user-context"; // <-- updated
 
 const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -41,16 +39,15 @@ const profileSchema = z.object({
   bio: z.string().optional(),
   location: z.string().optional(),
   hourlyRate: z.string().optional(),
-  avatar: z.string().optional(),
+  profilePicture: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function EditProfile() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, updateUserProfile, isLoading } = useUser();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const [skills, setSkills] = useState<string[]>(user?.skills || []);
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>(user?.portfolioLinks || []);
@@ -58,13 +55,14 @@ export default function EditProfile() {
   const [newPortfolioLink, setNewPortfolioLink] = useState("");
   const [error, setError] = useState("");
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState(user?.avatar || "");
+  const [previewUrl, setPreviewUrl] = useState(user?.profilePicture || "");
 
+  // Redirect if user is not logged in
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
+    // if (!isLoading && !user) {
+    //   setLocation("/login");
+    // }
+  }, [user, isLoading, setLocation]);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -74,7 +72,7 @@ export default function EditProfile() {
       bio: user?.bio || "",
       location: user?.location || "",
       hourlyRate: user?.hourlyRate || "",
-      avatar: user?.avatar || "",
+      profilePicture: user?.profilePicture || "",
     },
   });
 
@@ -87,51 +85,16 @@ export default function EditProfile() {
         bio: user.bio || "",
         location: user.location || "",
         hourlyRate: user.hourlyRate || "",
-        avatar: user.avatar || "",
+        profilePicture: user.profilePicture || "",
       });
       setSkills(user.skills || []);
       setPortfolioLinks(user.portfolioLinks || []);
+      setPreviewUrl(user.profilePicture || "");
     }
   }, [user, form]);
 
-  // Mutation for updating profile
-  const updateProfileMutation = useMutation({
-    mutationFn: async (
-      data: ProfileFormData & { skills: string[]; portfolioLinks: string[] }
-    ) => {
-      const response = await apiRequest("PUT", "/api/users/profile", {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        bio: data.bio,
-        location: data.location,
-        hourlyRate: data.hourlyRate,
-        avatar: data.avatar,
-        skills: data.skills,
-        portfolioLinks: data.portfolioLinks,
-      });
-      if (!response.ok) throw new Error("Failed to update profile");
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-      });
-      // Update user in cache
-      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
-    },
-    onError: (error: any) => {
-      setError(error.message || "Failed to update profile. Please try again.");
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleSubmit = async (data: ProfileFormData) => {
-    let avatarUrl = data.avatar;
+    let profilePictureUrl = data.profilePicture;
 
     // Upload image to Cloudinary if a new file is selected
     if (profilePictureFile) {
@@ -145,19 +108,35 @@ export default function EditProfile() {
           body: formData,
         });
         const result = await res.json();
-        avatarUrl = result.secure_url; // Cloudinary URL
+        profilePictureUrl = result.secure_url; // Cloudinary URL
       } catch (error) {
         toast({ title: "Upload failed", description: "Could not upload image", variant: "destructive" });
         return;
       }
     }
 
-    updateProfileMutation.mutate({
-      ...data,
-      avatar: avatarUrl,
-      skills,
-      portfolioLinks,
-    });
+    // Use user context to update profile
+    try {
+      await updateUserProfile({
+        ...data,
+        profilePicture: profilePictureUrl,
+        skills,
+        portfolioLinks,
+      });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+      // Redirect to dashboard
+      setLocation("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Failed to update profile. Please try again.");
+      toast({
+        title: "Update Failed",
+        description: err.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Helpers for skills & portfolio links
@@ -196,7 +175,7 @@ export default function EditProfile() {
     );
   }
 
-  if (!isAuthenticated || !user) return null;
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -425,9 +404,8 @@ export default function EditProfile() {
             <Button
               type="submit"
               className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-              disabled={updateProfileMutation.isPending}
             >
-              {updateProfileMutation.isPending ? "Saving..." : <><SaveIcon className="mr-2 h-4 w-4" /> Save Changes</>}
+              <SaveIcon className="mr-2 h-4 w-4" /> Save Changes
             </Button>
           </div>
         </form>

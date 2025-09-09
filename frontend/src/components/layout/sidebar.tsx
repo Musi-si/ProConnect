@@ -39,7 +39,7 @@ export function Sidebar({ className }: SidebarProps) {
 
   const freelancerNavItems = [
     { icon: HomeIcon, label: "Dashboard", href: "/dashboard" },
-    { icon: SearchIcon, label: "Find Work", href: "/projects/browse" },
+    { icon: SearchIcon, label: "Find Work", href: "/projects/all" },
     { icon: FolderIcon, label: "My Proposals", href: "/dashboard?tab=proposals" },
     { icon: FolderIcon, label: "Active Projects", href: "/dashboard?tab=active" },
     { icon: MessageSquareIcon, label: "Messages", href: "/messages" }
@@ -56,12 +56,18 @@ export function Sidebar({ className }: SidebarProps) {
   if (user.role === "admin") navItems = adminNavItems;
 
   return (
-    <div className={cn("flex flex-col h-full bg-sidebar border-r border-sidebar-border", className)}>
+    <div
+      className={cn(
+        "flex flex-col h-screen bg-sidebar border-r border-sidebar-border overflow-y-auto",
+        "h-[calc(100vh-4rem)]", 
+        className
+      )}
+    >
       {/* User Profile */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center space-x-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatar} alt={user.username} />
+            <AvatarImage src={user.profilePicture} alt={`${user.firstName} ${user.lastName}`} />
             <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
               {getInitials(user.firstName, user.lastName)}
             </AvatarFallback>
@@ -129,33 +135,32 @@ export function Sidebar({ className }: SidebarProps) {
       </nav>
 
       {/* Quick Stats */}
-      {user.role === "freelancer" && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div>
-              <div className="text-lg font-bold text-sidebar-primary">
-                ${user.totalEarnings || "0"}
+      {(user.role === "freelancer" || user.role === "client") && (
+        <div className="p-4 border-t border-sidebar-border mt-auto">
+          {user.role === "freelancer" && (
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div>
+                <div className="text-lg font-bold text-sidebar-primary">
+                  ${user.totalEarnings || "0"}
+                </div>
+                <div className="text-xs text-sidebar-foreground">Total Earned</div>
               </div>
-              <div className="text-xs text-sidebar-foreground">Total Earned</div>
-            </div>
-            <div>
-              <div className="text-lg font-bold text-sidebar-primary">
-                {user.reviewCount || 0}
+              <div>
+                <div className="text-lg font-bold text-sidebar-primary">
+                  {user.reviewCount || 0}
+                </div>
+                <div className="text-xs text-sidebar-foreground">Reviews</div>
               </div>
-              <div className="text-xs text-sidebar-foreground">Reviews</div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {user.role === "client" && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="text-center">
-            <div className="text-lg font-bold text-sidebar-primary">
-              ${user.totalSpent || "0"}
+          )}
+          {user.role === "client" && (
+            <div className="text-center">
+              <div className="text-lg font-bold text-sidebar-primary">
+                ${user.totalSpent || "0"}
+              </div>
+              <div className="text-xs text-sidebar-foreground">Total Spent</div>
             </div>
-            <div className="text-xs text-sidebar-foreground">Total Spent</div>
-          </div>
+          )}
         </div>
       )}
     </div>

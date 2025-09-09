@@ -10,7 +10,7 @@ import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 import VerifyEmail from "@/pages/auth/verify-email";
 import Dashboard from "@/pages/dashboard";
-import BrowseProjects from "@/pages/projects/browse";
+import BrowseProjects from "@/pages/projects/all";
 import CreateProject from "@/pages/projects/create";
 import ProjectDetails from "@/pages/projects/details";
 import BrowseFreelancers from "@/pages/freelancers/browse";
@@ -18,6 +18,7 @@ import EditProfile from "@/pages/profile/edit";
 import Messages from "@/pages/messages";
 import NotFound from "@/pages/not-found";
 import { ProjectProvider } from "./contexts/project-context";
+import { UserProvider } from "./contexts/user-context"; // make sure path is correct
 
 function Router() {
   return (
@@ -27,7 +28,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/dashboard" component={Dashboard} />
-      <Route path="/projects/browse" component={BrowseProjects} />
+      <Route path="/projects/all" component={BrowseProjects} />
       <Route path="/projects/create" component={CreateProject} />
       <Route path="/projects/:id" component={ProjectDetails} />
       <Route path="/freelancers/browse" component={BrowseFreelancers} />
@@ -44,10 +45,12 @@ function App() {
       <TooltipProvider>
         <ThemeProvider>
           <AuthProvider>
-            <ProjectProvider> {/* <-- ADD THIS */}
-              <Toaster />
-              <Router />
-            </ProjectProvider>
+            <UserProvider> {/* Add this */}
+              <ProjectProvider>
+                <Toaster />
+                <Router />
+              </ProjectProvider>
+            </UserProvider>
           </AuthProvider>
         </ThemeProvider>
       </TooltipProvider>

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Project } from '../models/project';
+import { User } from '../models/user'; // or User depending on your setup
 import { AuthRequest } from 'middlewares/auth';
 import { Op } from "sequelize";
 
@@ -96,7 +97,15 @@ export class ProjectsController {
       // Merge clientId into project data
       const projectData = { ...req.body, clientId };
 
+      // Create project
       const project = await Project.create(projectData);
+
+      // Add $25 to client's totalSpent
+      await User.increment(
+        { totalSpent: 25 },
+        { where: { id: clientId } }
+      );
+
       res.status(201).json(project);
     } catch (error) {
       console.error('Create project error:', error);

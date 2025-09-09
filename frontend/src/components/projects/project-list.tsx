@@ -106,9 +106,12 @@ export function ProjectList({
         </div>
         <div className="flex items-center space-x-4">
           {onSortChange && (
-            <Select onValueChange={onSortChange} defaultValue="newest">
+            <Select
+              onValueChange={onSortChange}
+              value={sortOptions[0]?.value} // always set a valid initial value
+            >
               <SelectTrigger className="w-40" data-testid="sort-select">
-                <SelectValue />
+                <SelectValue placeholder="Sort by..." />
               </SelectTrigger>
               <SelectContent>
                 {sortOptions.map((option) => (

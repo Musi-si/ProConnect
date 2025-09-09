@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { SearchFilters } from "@/components/search/search-filters";
 import { ProjectList } from "@/components/projects/project-list";
@@ -9,66 +8,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SearchIcon, FilterIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useProject } from "@/contexts/project-context";
 import type { SearchFilters as SearchFiltersType } from "@/types";
 
 export default function BrowseProjects() {
-  console.log("BrowseProjects loaded");
-
+  const { projects, isLoading } = useProject();
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<SearchFiltersType>({});
   const [currentPage, setCurrentPage] = useState(1);
   const isMobile = useIsMobile();
   const pageSize = 12;
 
-  // Build query parameters
-  const queryParams = new URLSearchParams();
-  if (searchQuery) queryParams.set('q', searchQuery);
-  if (filters.category) queryParams.set('category', filters.category);
-  if (filters.skills?.length) queryParams.set('skills', filters.skills.join(','));
-  if (filters.budgetMin) queryParams.set('budgetMin', filters.budgetMin.toString());
-  if (filters.budgetMax) queryParams.set('budgetMax', filters.budgetMax.toString());
-  if (filters.timeline) queryParams.set('timeline', filters.timeline);
-  queryParams.set('status', 'open'); // Only show open projects
-  queryParams.set('limit', pageSize.toString());
-  queryParams.set('offset', ((currentPage - 1) * pageSize).toString());
+  const totalCount = projects.length;
 
-  const { data: projectsData, isLoading } = useQuery({
-    queryKey: ['/api/projects', queryParams.toString()],
-  });
-
-  const projects = projectsData?.projects || [
-    // Example mock project
-    {
-      id: "1",
-      title: "Mock Project",
-      description: "This is a mock project for development.",
-      skills: ["React", "Node.js"],
-      budget: 500,
-      timeline: "1 week"
-    }
-  ];
-  // Use the real total count if available from API, else fallback to projects.length
-  const totalCount = projectsData?.totalCount ?? projects.length;
-
-  // Reset to first page when searching
-  const handleSearch = () => {
-    setCurrentPage(1);
-  };
-
-  // Reset to first page when filters change
+  const handleSearch = () => setCurrentPage(1);
   const handleFiltersChange = (newFilters: SearchFiltersType) => {
     setFilters(newFilters);
     setCurrentPage(1);
   };
-
-  const handleSortChange = (sort: string) => {
-    // This would be implemented to change the sort order
-    console.log('Sort changed to:', sort);
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const handleSortChange = (sort: string) => console.log("Sort changed to:", sort);
+  const handlePageChange = (page: number) => setCurrentPage(page);
 
   const FilterPanel = () => (
     <SearchFilters
@@ -82,7 +41,7 @@ export default function BrowseProjects() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
@@ -103,20 +62,19 @@ export default function BrowseProjects() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search projects by title, description, or skills..."
                   className="pl-10"
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  data-testid="project-search-input"
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleSearch} data-testid="search-projects">
+                <Button onClick={handleSearch}>
                   <SearchIcon className="mr-2 h-4 w-4" />
                   Search
                 </Button>
-                
+
                 {isMobile && (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <Button variant="outline" data-testid="mobile-filters">
+                      <Button variant="outline">
                         <FilterIcon className="mr-2 h-4 w-4" />
                         Filters
                       </Button>
@@ -147,20 +105,20 @@ export default function BrowseProjects() {
           )}
 
           {/* Main Content */}
-          <div className={`${isMobile ? 'col-span-full' : 'lg:col-span-3'}`}>
+          <div className={`${isMobile ? "col-span-full" : "lg:col-span-3"}`}>
             <div className="mb-4 text-muted-foreground text-sm">
               {isLoading
                 ? "Loading projects..."
                 : `Showing ${projects.length} of ${totalCount} projects`}
             </div>
-            {/* Show a message if there is no backend or no data */}
-            {!isLoading && (!projectsData || projects.length === 0) ? (
+
+            {!isLoading && projects.length === 0 ? (
               <Card className="bg-white/95 dark:bg-card/95 shadow-2xl">
                 <CardContent className="p-8 text-center">
                   <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No projects available</h3>
                   <p className="text-muted-foreground mb-4">
-                    There are currently no projects to display. This may be because the backend is not connected yet or the endpoint does not exist.
+                    There are currently no projects to display.
                   </p>
                 </CardContent>
               </Card>

@@ -61,10 +61,10 @@ export function Header() {
           <div className="hidden md:flex items-center space-x-8">
             {isAuthenticated ? (
               <>
-                <Link href="/projects/browse">
+                <Link href="/projects/all">
                   <Button 
                     variant="ghost" 
-                    className={location === "/projects/browse" ? "bg-accent" : ""}
+                    className={location === "/projects/all" ? "bg-accent" : ""}
                     data-testid="nav-find-work"
                   >
                     Find Work
@@ -166,7 +166,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full" data-testid="user-menu-trigger">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.avatar} alt={user?.username} />
+                        <AvatarImage src={user?.profilePicture} alt={`${user?.firstName} ${user?.lastName}`} />
                         <AvatarFallback>{getInitials(user?.firstName, user?.lastName)}</AvatarFallback>
                       </Avatar>
                     </Button>
@@ -206,7 +206,7 @@ export function Header() {
                     <DropdownMenuItem
                       onClick={logout}
                       data-testid="menu-logout"
-                      className="hover:text-destructive focus:bg-destructive focus:text-white cursor-pointer transition"
+                      className="text-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-[var(--background)] focus:text-[var(--destructive)] cursor-pointer transition"
                     >
                       <LogOutIcon className="mr-2 h-4 w-4" />
                       Log out
@@ -245,7 +245,7 @@ export function Header() {
           <div className="px-4 py-4 space-y-2">
             {isAuthenticated ? (
               <>
-                <Link href="/projects/browse">
+                <Link href="/projects/all">
                   <Button variant="ghost" className="w-full justify-start" data-testid="mobile-nav-find-work">
                     Find Work
                   </Button>

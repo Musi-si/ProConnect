@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/auth-context"; // ✅ add this import
 import { useProject } from "@/contexts/project-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import type { Project } from "@shared/schema";
 
 export function ClientDashboard() {
   const { projects, stats } = useProject();
+  const { user } = useAuth(); // ✅ logged-in client
 
   const recentProjects = projects.slice(0, 5) || [];
 
@@ -23,7 +25,7 @@ export function ClientDashboard() {
       <div className="bg-gradient-to-r from-primary to-orange-600 text-primary-foreground p-6 rounded-xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
+            <h1 className="text-2xl font-bold mb-2">Welcome back, {user.username}!</h1>
             <p className="opacity-90">Ready to hire top talent for your projects?</p>
           </div>
           <div className="flex items-center space-x-6 text-center">
@@ -51,23 +53,44 @@ export function ClientDashboard() {
                 <div className="w-16 h-16 bg-primary rounded-full mx-auto mb-3 flex items-center justify-center">
                   <StarIcon className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <div className="font-semibold text-lg">{stats?.companyName || "Your Company"}</div>
-                <div className="text-sm text-muted-foreground">Client since {stats?.memberSince || "2024"}</div>
+                <div className="font-semibold text-lg">
+                  {user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Client"}
+                </div>
+
+                {user.bio && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {user.bio}
+                  </div>
+                )}
+
+                <div className="text-sm text-muted-foreground">
+                  Client since {user ? new Date(user.createdAt).getFullYear() : "N/A"}
+                </div>
+
+                <div className="space-y-3 mt-3">
+                  {user.location && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Location</span>
+                      <span className="font-medium">{user.location || 0}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Projects Posted</span>
+                    <span className="font-medium">{user?.projectsPosted || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Active Projects</span>
+                    <span className="font-medium">{user?.activeProjects || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Spent</span>
+                    <span className="font-medium">
+                      ${user?.totalSpent ? parseFloat(user.totalSpent).toLocaleString() : "0"}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Projects Posted</span>
-                  <span className="font-medium">{stats?.projectsPosted || 0}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Active Projects</span>
-                  <span className="font-medium">{stats?.activeProjects || 0}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total Spent</span>
-                  <span className="font-medium">${stats?.totalSpent || '0'}</span>
-                </div>
-              </div>
+
               <div className="pt-4">
                 <Link href="/profile/edit">
                   <Button
