@@ -1,4 +1,6 @@
 import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
+import { Project } from './project';
+import { User } from './user'; // Assuming you have a User model
 
 interface MilestoneAttributes {
   title: string;
@@ -24,7 +26,19 @@ interface ProposalAttributes {
   updatedAt?: Date;
 }
 
-type ProposalCreationAttributes = Optional<ProposalAttributes, 'id' | 'milestones' | 'coverLetter' | 'proposedBudget' | 'proposedTimeline' | 'status' | 'portfolioSamples' | 'questions' | 'createdAt' | 'updatedAt'>;
+type ProposalCreationAttributes = Optional<
+  ProposalAttributes,
+  | 'id'
+  | 'milestones'
+  | 'coverLetter'
+  | 'proposedBudget'
+  | 'proposedTimeline'
+  | 'status'
+  | 'portfolioSamples'
+  | 'questions'
+  | 'createdAt'
+  | 'updatedAt'
+>;
 
 class Proposal extends Model<ProposalAttributes, ProposalCreationAttributes> implements ProposalAttributes {
   public id!: number;
@@ -41,6 +55,12 @@ class Proposal extends Model<ProposalAttributes, ProposalCreationAttributes> imp
   public questions?: string | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  // Associations
+  public static associate() {
+    Proposal.belongsTo(Project, { foreignKey: 'projectId', as: 'project' });
+    Proposal.belongsTo(User, { foreignKey: 'freelancerId', as: 'freelancer' });
+  }
 }
 
 function initProposal(sequelize: Sequelize) {
@@ -68,7 +88,7 @@ function initProposal(sequelize: Sequelize) {
         allowNull: false,
       },
       milestones: {
-        type: DataTypes.JSON, // Array of milestone objects
+        type: DataTypes.JSON,
         defaultValue: [],
         allowNull: false,
       },
@@ -80,7 +100,7 @@ function initProposal(sequelize: Sequelize) {
         defaultValue: 'pending',
       },
       portfolioSamples: {
-        type: DataTypes.JSON, // Array of strings
+        type: DataTypes.JSON,
         defaultValue: [],
         allowNull: false,
       },

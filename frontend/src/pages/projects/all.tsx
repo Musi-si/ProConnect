@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Header } from "@/components/layout/header";
 import { SearchFilters } from "@/components/search/search-filters";
 import { ProjectList } from "@/components/projects/project-list";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SearchIcon, FilterIcon } from "lucide-react";
+import { SearchIcon, FilterIcon, ArrowLeftIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useProject } from "@/contexts/project-context";
@@ -45,14 +46,31 @@ export default function BrowseProjects() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Browse Projects</h1>
-          <p className="text-muted-foreground">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
+              <Link href="/dashboard">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
+                >
+                  <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+            </div>
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-3xl font-bold text-[var(--primary)]">Browse Projects</h1>
+            </div>
+            <div className="flex-1" /> {/* Spacer for symmetry */}
+          </div>
+          <p className="text-muted-foreground text-center">
             Find your next opportunity from thousands of available projects
           </p>
         </div>
 
         {/* Search Bar */}
-        <Card className="mb-8">
+        <Card className="mb-8 bg-white/95 dark:bg-card/95 shadow-2xl">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
@@ -66,7 +84,10 @@ export default function BrowseProjects() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleSearch}>
+                <Button
+                  onClick={handleSearch}
+                  className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
+                >
                   <SearchIcon className="mr-2 h-4 w-4" />
                   Search
                 </Button>
@@ -74,7 +95,10 @@ export default function BrowseProjects() {
                 {isMobile && (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <Button variant="outline">
+                      <Button
+                        variant="outline"
+                        className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
+                      >
                         <FilterIcon className="mr-2 h-4 w-4" />
                         Filters
                       </Button>
@@ -108,8 +132,8 @@ export default function BrowseProjects() {
           <div className={`${isMobile ? "col-span-full" : "lg:col-span-3"}`}>
             <div className="mb-4 text-muted-foreground text-sm">
               {isLoading
-                ? "Loading projects..."
-                : `Showing ${projects.length} of ${totalCount} projects`}
+                ? "Loading projects..." : ""}
+                {/* // : `Showing ${projects.length} of ${totalCount} projects`} */}
             </div>
 
             {!isLoading && projects.length === 0 ? (

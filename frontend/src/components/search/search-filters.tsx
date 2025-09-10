@@ -20,7 +20,7 @@ interface SearchFiltersProps {
   filters: SearchFilters;
   onFiltersChange: (filters: SearchFilters) => void;
   onSearch: () => void;
-  searchType?: 'projects' | 'freelancers';
+  searchType?: "projects" | "freelancers";
 }
 
 const categories = [
@@ -39,18 +39,18 @@ const timelines = [
   "1-2 weeks",
   "1 month",
   "2-3 months",
-  "More than 3 months"
+  "More than 3 months",
 ];
 
 export function SearchFilters({
   filters,
   onFiltersChange,
   onSearch,
-  searchType = 'projects'
+  searchType = "projects",
 }: SearchFiltersProps) {
   const [budgetRange, setBudgetRange] = useState<[number, number]>([
     filters.budgetMin || 0,
-    filters.budgetMax || 10000
+    filters.budgetMax || 10000,
   ]);
   const [skillInput, setSkillInput] = useState("");
 
@@ -69,14 +69,14 @@ export function SearchFilters({
     if (!skill) return;
     const currentSkills = filters.skills || [];
     if (!currentSkills.includes(skill)) {
-      handleFilterChange('skills', [...currentSkills, skill]);
+      handleFilterChange("skills", [...currentSkills, skill]);
     }
     setSkillInput("");
   };
 
   const handleRemoveSkill = (skill: string) => {
     const currentSkills = filters.skills || [];
-    handleFilterChange('skills', currentSkills.filter(s => s !== skill));
+    handleFilterChange("skills", currentSkills.filter((s) => s !== skill));
   };
 
   const handleSkillInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -90,15 +90,15 @@ export function SearchFilters({
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newMin = Math.min(Number(e.target.value), budgetRange[1] - step);
     setBudgetRange([newMin, budgetRange[1]]);
-    handleFilterChange('budgetMin', newMin);
-    handleFilterChange('budgetMax', budgetRange[1]);
+    handleFilterChange("budgetMin", newMin);
+    handleFilterChange("budgetMax", budgetRange[1]);
   };
 
   const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newMax = Math.max(Number(e.target.value), budgetRange[0] + step);
     setBudgetRange([budgetRange[0], newMax]);
-    handleFilterChange('budgetMin', budgetRange[0]);
-    handleFilterChange('budgetMax', newMax);
+    handleFilterChange("budgetMin", budgetRange[0]);
+    handleFilterChange("budgetMax", newMax);
   };
 
   const clearFilters = () => {
@@ -107,7 +107,7 @@ export function SearchFilters({
     setSkillInput("");
   };
 
-  const activeFilterCount = Object.keys(filters).filter(key => {
+  const activeFilterCount = Object.keys(filters).filter((key) => {
     const value = filters[key as keyof SearchFilters];
     return value && (Array.isArray(value) ? value.length > 0 : true);
   }).length;
@@ -115,8 +115,10 @@ export function SearchFilters({
   // For slider background fill
   useEffect(() => {
     if (rangeRef.current) {
-      const percent1 = ((budgetRange[0] - minBudget) / (maxBudget - minBudget)) * 100;
-      const percent2 = ((budgetRange[1] - minBudget) / (maxBudget - minBudget)) * 100;
+      const percent1 =
+        ((budgetRange[0] - minBudget) / (maxBudget - minBudget)) * 100;
+      const percent2 =
+        ((budgetRange[1] - minBudget) / (maxBudget - minBudget)) * 100;
       rangeRef.current.style.background = `linear-gradient(to right, #e5e7eb ${percent1}%, var(--primary) ${percent1}%, var(--primary) ${percent2}%, #e5e7eb ${percent2}%)`;
     }
   }, [budgetRange]);
@@ -131,7 +133,12 @@ export function SearchFilters({
           </span>
           {activeFilterCount > 0 && (
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-[var(--primary)]/10 text-[var(--primary)] border-none">{activeFilterCount} active</Badge>
+              <Badge
+                variant="secondary"
+                className="bg-[var(--primary)]/10 text-[var(--primary)] border-none"
+              >
+                {activeFilterCount} active
+              </Badge>
               <Button
                 variant="ghost"
                 size="sm"
@@ -150,18 +157,23 @@ export function SearchFilters({
       </CardHeader>
       <CardContent className="space-y-8">
         {/* Category Filter */}
-        {searchType === 'projects' && (
+        {searchType === "projects" && (
           <div className="space-y-2">
             <Label className="text-[var(--primary)]">Category</Label>
             <Select
-              value={filters.category || ""}
-              onValueChange={(value) => handleFilterChange('category', value)}
+              value={filters.category || "all"}
+              onValueChange={(value) =>
+                handleFilterChange("category", value === "all" ? undefined : value)
+              }
             >
-              <SelectTrigger data-testid="category-filter" className="border-[var(--primary)]/30">
+              <SelectTrigger
+                data-testid="category-filter"
+                className="border-[var(--primary)]/30"
+              >
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -178,7 +190,7 @@ export function SearchFilters({
           <div className="flex gap-2">
             <Input
               value={skillInput}
-              onChange={e => setSkillInput(e.target.value)}
+              onChange={(e) => setSkillInput(e.target.value)}
               onKeyDown={handleSkillInputKeyDown}
               placeholder="Type a skill and press Enter"
               data-testid="skills-input"
@@ -197,7 +209,11 @@ export function SearchFilters({
           {filters.skills && filters.skills.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-2">
               {filters.skills.map((skill) => (
-                <Badge key={skill} variant="secondary" className="text-xs text-foreground bg-[var(--primary)]/10 border-none">
+                <Badge
+                  key={skill}
+                  variant="secondary"
+                  className="text-xs text-foreground bg-[var(--primary)]/10 border-none"
+                >
                   {skill}
                   <Button
                     variant="ghost"
@@ -254,8 +270,10 @@ export function SearchFilters({
               <div
                 className="absolute top-1/2 left-0"
                 style={{
-                  transform: `translateX(${((budgetRange[0] - minBudget) / (maxBudget - minBudget)) * 100}%) translateY(-50%)`,
-                  zIndex: 4
+                  transform: `translateX(${
+                    ((budgetRange[0] - minBudget) / (maxBudget - minBudget)) * 100
+                  }%) translateY(-50%)`,
+                  zIndex: 4,
                 }}
               >
                 <div className="w-4 h-4 rounded-full bg-[var(--primary)] border-2 border-white shadow" />
@@ -263,8 +281,10 @@ export function SearchFilters({
               <div
                 className="absolute top-1/2 left-0"
                 style={{
-                  transform: `translateX(${((budgetRange[1] - minBudget) / (maxBudget - minBudget)) * 100}%) translateY(-50%)`,
-                  zIndex: 4
+                  transform: `translateX(${
+                    ((budgetRange[1] - minBudget) / (maxBudget - minBudget)) * 100
+                  }%) translateY(-50%)`,
+                  zIndex: 4,
                 }}
               >
                 <div className="w-4 h-4 rounded-full bg-[var(--primary)] border-2 border-white shadow" />
@@ -278,18 +298,23 @@ export function SearchFilters({
         </div>
 
         {/* Timeline Filter (Projects only) */}
-        {searchType === 'projects' && (
+        {searchType === "projects" && (
           <div className="space-y-2">
             <Label className="text-[var(--primary)]">Timeline</Label>
             <Select
-              value={filters.timeline || ""}
-              onValueChange={(value) => handleFilterChange('timeline', value)}
+              value={filters.timeline || "any"}
+              onValueChange={(value) =>
+                handleFilterChange("timeline", value === "any" ? undefined : value)
+              }
             >
-              <SelectTrigger data-testid="timeline-filter" className="border-[var(--primary)]/30">
+              <SelectTrigger
+                data-testid="timeline-filter"
+                className="border-[var(--primary)]/30"
+              >
                 <SelectValue placeholder="Any timeline" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any timeline</SelectItem>
+                <SelectItem value="any">Any timeline</SelectItem>
                 {timelines.map((timeline) => (
                   <SelectItem key={timeline} value={timeline}>
                     {timeline}
@@ -301,7 +326,7 @@ export function SearchFilters({
         )}
 
         {/* Location Filter (Freelancers only) */}
-        {searchType === 'freelancers' && (
+        {searchType === "freelancers" && (
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-[var(--primary)]">
               <MapPinIcon className="h-4 w-4" />
@@ -309,7 +334,7 @@ export function SearchFilters({
             </Label>
             <Input
               value={filters.location || ""}
-              onChange={(e) => handleFilterChange('location', e.target.value)}
+              onChange={(e) => handleFilterChange("location", e.target.value)}
               placeholder="Enter location"
               data-testid="location-filter"
               className="border-[var(--primary)]/30"
@@ -318,7 +343,7 @@ export function SearchFilters({
         )}
 
         {/* Rating Filter (Freelancers only) */}
-        {searchType === 'freelancers' && (
+        {searchType === "freelancers" && (
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-[var(--primary)]">
               <StarIcon className="h-4 w-4" />
@@ -332,11 +357,14 @@ export function SearchFilters({
                     id={`rating-${rating}`}
                     name="minRating"
                     checked={filters.minRating === rating}
-                    onChange={() => handleFilterChange('minRating', rating)}
+                    onChange={() => handleFilterChange("minRating", rating)}
                     data-testid={`rating-filter-${rating}`}
                     className="accent-[var(--primary)]"
                   />
-                  <Label htmlFor={`rating-${rating}`} className="flex items-center space-x-1 cursor-pointer">
+                  <Label
+                    htmlFor={`rating-${rating}`}
+                    className="flex items-center space-x-1 cursor-pointer"
+                  >
                     <span>{rating}+</span>
                     <div className="flex">
                       {Array.from({ length: 5 }, (_, i) => (
@@ -344,8 +372,8 @@ export function SearchFilters({
                           key={i}
                           className={`h-3 w-3 ${
                             i < rating
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-300"
                           }`}
                         />
                       ))}
@@ -360,10 +388,13 @@ export function SearchFilters({
                   id="rating-clear"
                   name="minRating"
                   checked={filters.minRating === undefined}
-                  onChange={() => handleFilterChange('minRating', undefined)}
+                  onChange={() => handleFilterChange("minRating", undefined)}
                   className="accent-[var(--primary)]"
                 />
-                <Label htmlFor="rating-clear" className="text-sm cursor-pointer text-muted-foreground">
+                <Label
+                  htmlFor="rating-clear"
+                  className="text-sm cursor-pointer text-muted-foreground"
+                >
                   Any rating
                 </Label>
               </div>

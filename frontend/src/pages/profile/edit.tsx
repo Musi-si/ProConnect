@@ -30,7 +30,7 @@ import {
   DollarSignIcon,
   LinkIcon,
 } from "lucide-react";
-import { z } from "zod";
+import { string, z } from "zod";
 import { useUser } from "@/contexts/user-context"; // <-- updated
 
 const profileSchema = z.object({
@@ -49,14 +49,16 @@ export default function EditProfile() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const [skills, setSkills] = useState<string[]>(user?.skills || []);
-  const [portfolioLinks, setPortfolioLinks] = useState<string[]>(user?.portfolioLinks || []);
+  const [skills_, setSkills] = useState<string[] | string>(Array.isArray(user?.skills) ? user.skills : []);
+  const [portfolioLinks_, setPortfolioLinks] = useState<string[] | string>(Array.isArray(user?.portfolioLinks) ? user.portfolioLinks : []);
   const [newSkill, setNewSkill] = useState("");
   const [newPortfolioLink, setNewPortfolioLink] = useState("");
   const [error, setError] = useState("");
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState(user?.profilePicture || "");
 
+  const skills: string[] = Array.isArray(skills_) ? skills_ : typeof skills_ === 'string' ? skills_.split(',').map(s => s.trim()) : [];
+  const portfolioLinks: string[] = Array.isArray(portfolioLinks_) ? portfolioLinks_ : typeof portfolioLinks_ === 'string' ? portfolioLinks_.split(',').map(s => s.trim()) : [];
   // Redirect if user is not logged in
   useEffect(() => {
     // if (!isLoading && !user) {
@@ -313,7 +315,7 @@ export default function EditProfile() {
                 <CardTitle>Skills & Expertise</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {skills.length > 0 && (
+                {skills.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill, i) => (
                       <Badge key={i} variant="secondary" className="px-3 py-1">
@@ -330,6 +332,8 @@ export default function EditProfile() {
                       </Badge>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No skills added yet</p>
                 )}
                 <div className="flex gap-2">
                   <Input

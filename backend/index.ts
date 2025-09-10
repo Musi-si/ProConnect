@@ -21,8 +21,8 @@ import { swaggerUi, swaggerSpec } from './swagger';
 // Import model initializers
 import { initUser } from './models/user';
 import { initMessage } from './models/message';
-import { initProject } from './models/project';
-import { initProposal } from './models/proposal';
+import { initProject, Project } from './models/project';
+import { initProposal, Proposal } from './models/proposal';
 import { initReview } from './models/review';
 import { initMilestone } from './models/milestone';
 import { initNotification } from './models/notification';
@@ -31,7 +31,7 @@ import { initNotification } from './models/notification';
 import authRoutes from './routes/auth';
 import messageRoutes from './routes/message';
 import projectRoutes from './routes/project';
-import proposalRoutes from './routes/proposal';
+// import proposalRoutes from './routes/proposal';
 import reviewRoutes from './routes/review';
 import milestoneRoutes from './routes/milestone';
 import notificationRoutes from './routes/notification';
@@ -58,7 +58,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/proposals', proposalRoutes);
+// app.use('/api/projects/:projectId/proposals', proposalRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/milestones', milestoneRoutes);
 app.use('/api/notifications', notificationRoutes);
@@ -72,6 +72,10 @@ initProposal(sequelize);
 initReview(sequelize);
 initMilestone(sequelize);
 initNotification(sequelize);
+
+// Setup associations
+Project.associate();
+Proposal.associate();
 
 // Real-time messaging
 io.on('connection', (socket) => {

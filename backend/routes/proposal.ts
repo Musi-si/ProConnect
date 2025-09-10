@@ -1,122 +1,91 @@
 // routes/proposal.ts
-import { Router } from 'express';
-import { ProposalsController } from '../controllers/proposal';
-import { authMiddleware } from '../middlewares/auth';
+import { Router } from "express";
+import { ProposalsController } from "../controllers/proposal";
+import { authMiddleware } from "../middlewares/auth";
 
-const router = Router();
+const router = Router({ mergeParams: true }); // allows :projectId from parent router
 const proposalsController = new ProposalsController();
 
 /**
  * @swagger
  * tags:
  *   name: Proposals
- *   description: Manage project proposals
+ *   description: Manage proposals within a project
  */
 
 /**
  * @swagger
- * /api/proposals/{id}:
+ * /api/projects/{projectId}/proposals/all:
  *   get:
- *     summary: Get a proposal by ID
- *     tags: [Proposals]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The proposal ID
- *     responses:
- *       200:
- *         description: Proposal data
- *       404:
- *         description: Proposal not found
- */
-router.get('/:id', proposalsController.getProposal.bind(proposalsController));
-
-/**
- * @swagger
- * /api/proposals/project/{projectId}:
- *   get:
- *     summary: Get proposals by project ID
+ *     summary: Get all proposals for a project
  *     tags: [Proposals]
  *     parameters:
  *       - in: path
  *         name: projectId
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: The project ID
  *     responses:
  *       200:
- *         description: List of proposals for the project
- *       404:
- *         description: No proposals found for this project
+ *         description: List of proposals
  */
-router.get('/project/:projectId', proposalsController.getProposalsByProject.bind(proposalsController));
+router.get("/all", proposalsController.getProposalsByProject.bind(proposalsController));
 
 /**
  * @swagger
- * /api/proposals/freelancer/{freelancerId}:
- *   get:
- *     summary: Get proposals by freelancer ID
- *     tags: [Proposals]
- *     parameters:
- *       - in: path
- *         name: freelancerId
- *         schema:
- *           type: string
- *         required: true
- *         description: The freelancer ID
- *     responses:
- *       200:
- *         description: List of proposals by the freelancer
- *       404:
- *         description: No proposals found for this freelancer
- */
-router.get('/freelancer/:freelancerId', proposalsController.getProposalsByFreelancer.bind(proposalsController));
-
-/**
- * @swagger
- * /proposals:
+ * /api/projects/{projectId}/proposals/add:
  *   post:
- *     summary: Create a new proposal
+ *     summary: Submit a proposal for a project
  *     tags: [Proposals]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - projectId
- *               - freelancerId
- *               - content
- *             properties:
- *               projectId:
- *                 type: string
- *                 example: 64f7e5b9c2a7f2e56d9f1c8d
- *               freelancerId:
- *                 type: string
- *                 example: 64f7e5b9c2a7f2e56d9f1c9e
- *               content:
- *                 type: string
- *                 example: "I would love to work on this project. I have experience in similar tasks."
+ *             $ref: '#/components/schemas/ProposalInput'
  *     responses:
  *       201:
  *         description: Proposal created successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized
  */
-router.post('/', authMiddleware, proposalsController.createProposal.bind(proposalsController));
+router.post("/add", authMiddleware, proposalsController.createProposal.bind(proposalsController));
 
 /**
  * @swagger
- * /api/proposals/{id}:
+ * /api/projects/{projectId}/proposals/{proposalId}:
+ *   get:
+ *     summary: Get a proposal by ID
+ *     tags: [Proposals]
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: proposalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Proposal details
+ *       404:
+ *         description: Proposal not found
+ */
+router.get("/:proposalId", proposalsController.getProposal.bind(proposalsController));
+
+/**
+ * @swagger
+ * /api/projects/{projectId}/proposals/{proposalId}:
  *   put:
  *     summary: Update a proposal
  *     tags: [Proposals]
@@ -124,36 +93,32 @@ router.post('/', authMiddleware, proposalsController.createProposal.bind(proposa
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: projectId
+ *         required: true
  *         schema:
  *           type: string
+ *       - in: path
+ *         name: proposalId
  *         required: true
- *         description: The proposal ID
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               content:
- *                 type: string
- *                 example: "Updated proposal content"
+ *             $ref: '#/components/schemas/ProposalInput'
  *     responses:
  *       200:
  *         description: Proposal updated successfully
- *       400:
- *         description: Invalid input
  *       404:
  *         description: Proposal not found
- *       401:
- *         description: Unauthorized
  */
-router.put('/:id', authMiddleware, proposalsController.updateProposal.bind(proposalsController));
+router.put("/:proposalId", authMiddleware, proposalsController.updateProposal.bind(proposalsController));
 
 /**
  * @swagger
- * /api/proposals/{id}:
+ * /api/projects/{projectId}/proposals/{proposalId}:
  *   delete:
  *     summary: Delete a proposal
  *     tags: [Proposals]
@@ -161,19 +126,46 @@ router.put('/:id', authMiddleware, proposalsController.updateProposal.bind(propo
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: projectId
+ *         required: true
  *         schema:
  *           type: string
+ *       - in: path
+ *         name: proposalId
  *         required: true
- *         description: The proposal ID
+ *         schema:
+ *           type: string
  *     responses:
- *       200:
+ *       204:
  *         description: Proposal deleted successfully
  *       404:
  *         description: Proposal not found
- *       401:
- *         description: Unauthorized
  */
-router.delete('/:id', authMiddleware, proposalsController.deleteProposal.bind(proposalsController));
+router.delete("/:proposalId", authMiddleware, proposalsController.deleteProposal.bind(proposalsController));
+
+/**
+ * @swagger
+ * /api/projects/{projectId}/proposals/{proposalId}/accept:
+ *   put:
+ *     summary: Accept a proposal (client only)
+ *     tags: [Proposals]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: proposalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Proposal accepted successfully
+ */
+router.put("/:proposalId/accept", authMiddleware, proposalsController.acceptProposal.bind(proposalsController));
 
 export default router;

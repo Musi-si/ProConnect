@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { ProjectsController } from '../controllers/project';
 import { authMiddleware, authorizeRoles } from '../middlewares/auth';
+import proposalRoutes from './proposal';
 
 const router = Router();
 const projectsController = new ProjectsController();
@@ -169,5 +170,27 @@ router.put('/:id', authMiddleware, projectsController.updateProject.bind(project
  *         description: Unauthorized
  */
 router.delete('/:id', authMiddleware, projectsController.deleteProject.bind(projectsController));
+
+/**
+ * @swagger
+ * tags:
+ *   name: Proposals
+ *   description: Manage proposals for a project
+ *
+ * /api/projects/{projectId}/proposals:
+ *   get:
+ *     summary: Get all proposals for a project
+ *     tags: [Proposals]
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of proposals for this project
+ */
+router.use('/:projectId/proposals', proposalRoutes);
 
 export default router;

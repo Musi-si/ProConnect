@@ -15,7 +15,6 @@ import { useAuth } from "@/contexts/auth-context";
 import { useProject } from "@/contexts/project-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-  import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowLeftIcon,
   CalendarIcon,
@@ -54,21 +53,6 @@ export default function ProjectDetails() {
         description: "The freelancer has been notified and the project has begun.",
       });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-    },
-  });
-
-  // Submit proposal mutation
-  const submitProposalMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/projects/${projectId}/proposals`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Proposal Submitted",
-        description: "Your proposal has been sent to the client.",
-      });
-      setActiveTab("overview");
     },
   });
 
@@ -145,8 +129,8 @@ export default function ProjectDetails() {
                   <ArrowLeftIcon className="mr-2 h-4 w-4" />
                   Back to Dashboard
                 </Button>
-              </Link>
-              <Link href="/projects/browse">
+              </Link><br />
+              <Link href="/projects/all">
                 <Button
                   variant="outline"
                   size="sm"
@@ -375,7 +359,7 @@ export default function ProjectDetails() {
             )}
           </TabsList>
 
-          <TabsContent value="overview" className="mt-6">
+          {/* <TabsContent value="overview" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Project Overview</CardTitle>
@@ -389,7 +373,7 @@ export default function ProjectDetails() {
                 </p>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
 
           {canSubmitProposal && (
             <TabsContent value="submit-proposal" className="mt-6">
@@ -397,8 +381,6 @@ export default function ProjectDetails() {
                 projectId={projectId}
                 projectTitle={project.title}
                 projectBudget={project.budget}
-                onSubmit={submitProposalMutation.mutateAsync}
-                isLoading={submitProposalMutation.isPending}
               />
             </TabsContent>
           )}

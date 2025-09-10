@@ -10,12 +10,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { insertProposalSchema, type InsertProposal } from "@shared/schema";
+import { useProposal } from "@/contexts/proposal-context";
 import { PlusIcon, XIcon, LoaderIcon, InfoIcon } from "lucide-react";
 import { z } from "zod";
+// import { submitProposal } from "../../utils/proposals";
+import { useAuth } from "@/contexts/auth-context";
 
-const proposalFormSchema = insertProposalSchema.omit({ 
-  projectId: true, 
-  freelancerId: true 
+const proposalFormSchema = insertProposalSchema.omit({
+  projectId: true,
+  freelancerId: true,
 });
 
 interface Milestone {
@@ -29,17 +32,12 @@ interface ProposalFormProps {
   projectId: string;
   projectTitle: string;
   projectBudget: string;
-  onSubmit: (data: z.infer<typeof proposalFormSchema>) => Promise<void>;
-  isLoading?: boolean;
 }
 
-export function ProposalForm({ 
-  projectId, 
-  projectTitle, 
-  projectBudget,
-  onSubmit, 
-  isLoading 
-}: ProposalFormProps) {
+export function ProposalForm({ projectId, projectTitle, projectBudget }: ProposalFormProps) {
+  const { submitProposal, isLoading } = useProposal();
+  const { user } = useAuth();
+
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>([]);
   const [newPortfolioLink, setNewPortfolioLink] = useState("");
@@ -60,10 +58,23 @@ export function ProposalForm({
   const handleSubmit = async (data: z.infer<typeof proposalFormSchema>) => {
     try {
       setError("");
-      await onSubmit({
-        ...data,
-        milestones,
-        portfolioSamples: portfolioLinks,
+
+      if (!user?.id) throw new Error("User not logged in");
+
+      // Ensure budget is a number
+      const parsedBudget = Number(data.proposedBudget);
+      if (isNaN(parsedBudget)) throw new Error("Invalid budget");
+
+      await submitProposal(projectId, {
+        description: data.coverLetter || "No description provided", // map coverLetter to description
+        coverLetter: data.coverLetter,
+        proposedBudget: parsedBudget,
+        proposedTimeline: data.proposedTimeline,
+        questions: data.questions || null,
+        projectId: Number(projectId),
+        freelancerId: user.id,
+        milestones: milestones || [],
+        portfolioSamples: portfolioLinks || [],
       });
     } catch (err: any) {
       setError(err.message || "Failed to submit proposal. Please try again.");
@@ -73,12 +84,7 @@ export function ProposalForm({
   const addMilestone = () => {
     setMilestones([
       ...milestones,
-      {
-        title: "",
-        description: "",
-        amount: 0,
-        dueDate: "",
-      },
+      { title: "", description: "", amount: 0, dueDate: "" },
     ]);
   };
 
@@ -93,8 +99,9 @@ export function ProposalForm({
   };
 
   const addPortfolioLink = () => {
-    if (newPortfolioLink.trim() && !portfolioLinks.includes(newPortfolioLink.trim())) {
-      setPortfolioLinks([...portfolioLinks, newPortfolioLink.trim()]);
+    const link = newPortfolioLink.trim();
+    if (link && !portfolioLinks.includes(link)) {
+      setPortfolioLinks([...portfolioLinks, link]);
       setNewPortfolioLink("");
     }
   };
@@ -103,7 +110,7 @@ export function ProposalForm({
     setPortfolioLinks(portfolioLinks.filter(link => link !== linkToRemove));
   };
 
-  const totalMilestoneAmount = milestones.reduce((sum, milestone) => sum + milestone.amount, 0);
+  const totalMilestoneAmount = milestones.reduce((sum, m) => sum + (m.amount || 0), 0);
 
   return (
     <Card className="max-w-4xl mx-auto">

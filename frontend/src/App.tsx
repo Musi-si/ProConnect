@@ -18,7 +18,8 @@ import EditProfile from "@/pages/profile/edit";
 import Messages from "@/pages/messages";
 import NotFound from "@/pages/not-found";
 import { ProjectProvider } from "./contexts/project-context";
-import { UserProvider } from "./contexts/user-context"; // make sure path is correct
+import { UserProvider } from "./contexts/user-context";
+import { ProposalProvider } from "./contexts/proposal-context";
 
 function Router() {
   return (
@@ -45,10 +46,12 @@ function App() {
       <TooltipProvider>
         <ThemeProvider>
           <AuthProvider>
-            <UserProvider> {/* Add this */}
+            <UserProvider>
               <ProjectProvider>
-                <Toaster />
-                <Router />
+                <ProposalProvider>
+                  <Toaster />
+                  <Router />
+                </ProposalProvider>
               </ProjectProvider>
             </UserProvider>
           </AuthProvider>

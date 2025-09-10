@@ -152,7 +152,7 @@ export function ClientDashboard() {
                             {project.description.slice(0, 120)}...
                           </p>
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {project.skills?.slice(0, 5).map((skill: string, index: number) => (
+                            {(Array.isArray(project.skills) ? project.skills : []).slice(0, 5).map((skill, index) => (
                               <Badge key={index} variant="secondary" className="text-xs">{skill}</Badge>
                             ))}
                           </div>

@@ -138,7 +138,7 @@ export function ProposalList({
                     <div className="space-y-2">
                       <div className="text-sm font-medium">Portfolio Examples:</div>
                       <div className="flex flex-wrap gap-2">
-                        {proposal.portfolioSamples.map((sample: string, index: number) => (
+                        {(Array.isArray(proposal.portfolioSamples) ? proposal.portfolioSamples : []).map((sample: string, index: number) => (
                           <a
                             key={index}
                             href={sample}
@@ -169,7 +169,7 @@ export function ProposalList({
                     <div className="space-y-2">
                       <div className="text-sm font-medium">Proposed Milestones:</div>
                       <div className="space-y-2">
-                        {proposal.milestones.map((milestone: any, index: number) => (
+                        {(Array.isArray(proposal.milestones) ? proposal.milestones : []).map((milestone: any, index: number) => (
                           <div key={index} className="p-3 bg-muted/50 rounded-lg">
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-sm font-medium">{milestone.title}</span>
@@ -177,7 +177,7 @@ export function ProposalList({
                             </div>
                             <p className="text-xs text-muted-foreground">{milestone.description}</p>
                             <div className="text-xs text-muted-foreground mt-1">
-                              Due: {new Date(milestone.dueDate).toLocaleDateString()}
+                              Due: {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString() : 'N/A'}
                             </div>
                           </div>
                         ))}
