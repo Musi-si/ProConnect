@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { useProject } from "@/contexts/project-context";
+import { MessageProvider } from "@/contexts/message-context"; // ✅ import
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -241,6 +242,49 @@ export default function ProjectDetails() {
                       </div>
                     </div>
                   )}
+
+                  {/* Milestones Proposed */}
+                  <div className="mt-6">
+                    <h3 className="font-semibold mb-3">Proposed Milestones</h3>
+                    {Array.from(Array.isArray(project.milestones) ? project.milestones : JSON.parse(project.milestones || "[]")).length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {Array.from(Array.isArray(project.milestones) ? project.milestones : JSON.parse(project.milestones || "[]")).map((ms: any) => (
+                          <Card key={ms.id} className="bg-white/95 dark:bg-card/95 shadow-md hover:shadow-lg transition">
+                            <CardContent className="space-y-2">
+                              <div className="flex justify-between items-start">
+                                <h4 className="font-semibold">{ms.title}</h4>
+                                <Badge
+                                  className={
+                                    ms.status === "completed"
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                      : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+                                  }
+                                >
+                                  {ms.status === "completed" ? "Completed" : "Pending"}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-3">{ms.description}</p>
+                              <div className="flex justify-between items-center text-sm text-muted-foreground">
+                                <span>Proposed Payment: ${ms.payment}</span>
+                                {isProjectOwner && ms.status === "pending" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
+                                    onClick={''}
+                                  >
+                                    Mark as Completed
+                                  </Button>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No milestones proposed yet.</p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -305,35 +349,21 @@ export default function ProjectDetails() {
             {canSubmitProposal && (
               <Button 
                 className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition" 
-                size="lg"
-                onClick={() => setActiveTab("submit-proposal")}
-                data-testid="submit-proposal-button"
-              >
-                Submit Proposal
+                size="lg" onClick={() => setActiveTab("submit-proposal")} data-testid="submit-proposal-button">Submit Proposal
               </Button>
             )}
 
             {isProjectOwner && project.status === 'open' && (
-              <Button 
-                variant="outline" 
-                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                onClick={() => setActiveTab("proposals")}
-                data-testid="view-proposals-button"
-              >
-                <UserIcon className="mr-2 h-4 w-4" />
-                View Proposals ({proposals.length})
+              <Button variant="outline" onClick={() => setActiveTab("proposals")} data-testid="view-proposals-button"
+                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition">
+                <UserIcon className="mr-2 h-4 w-4" />View Proposals ({proposals.length})
               </Button>
             )}
 
             {(isProjectOwner || isAssignedFreelancer) && project.status === 'in_progress' && (
-              <Button 
-                variant="outline" 
-                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                onClick={() => setActiveTab("messages")}
-                data-testid="open-messages-button"
-              >
-                <MessageSquareIcon className="mr-2 h-4 w-4" />
-                Open Messages
+              <Button variant="outline" onClick={() => setActiveTab("messages")} data-testid="open-messages-button"
+                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition">
+                <MessageSquareIcon className="mr-2 h-4 w-4" />Open Messages
               </Button>
             )}
           </div>
@@ -341,76 +371,29 @@ export default function ProjectDetails() {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-            <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-            {canSubmitProposal && (
-              <TabsTrigger value="submit-proposal" data-testid="tab-submit-proposal">Submit Proposal</TabsTrigger>
-            )}
-            {isProjectOwner && (
-              <TabsTrigger value="proposals" data-testid="tab-proposals">
-                Proposals ({proposals.length})
-              </TabsTrigger>
-            )}
-            {project.status === 'in_progress' && (isProjectOwner || isAssignedFreelancer) && (
-              <>
-                <TabsTrigger value="milestones" data-testid="tab-milestones">Milestones</TabsTrigger>
-                <TabsTrigger value="messages" data-testid="tab-messages">Messages</TabsTrigger>
-              </>
-            )}
-          </TabsList>
-
-          {/* <TabsContent value="overview" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Overview</CardTitle>
-                <CardDescription>
-                  Complete project details and requirements
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  All project information is displayed above. Use the tabs to navigate between different sections.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent> */}
-
           {canSubmitProposal && (
             <TabsContent value="submit-proposal" className="mt-6">
-              <ProposalForm
-                projectId={projectId}
-                projectTitle={project.title}
-                projectBudget={project.budget}
-              />
+              <ProposalForm projectId={projectId} projectTitle={project.title} projectBudget={project.budget} />
             </TabsContent>
           )}
 
           {isProjectOwner && (
             <TabsContent value="proposals" className="mt-6">
-              <ProposalList
-                proposals={proposals}
-                // isLoading={proposalsLoading}
-                onAccept={acceptProposalMutation.mutateAsync}
-                showActions={true}
-              />
+              <ProposalList proposals={proposals} onAccept={acceptProposalMutation.mutateAsync} showActions={true} />
             </TabsContent>
           )}
 
           {project.status === 'in_progress' && (isProjectOwner || isAssignedFreelancer) && (
             <>
               <TabsContent value="milestones" className="mt-6">
-                <MilestoneTracker
-                  projectId={projectId}
-                  showPaymentActions={isProjectOwner}
-                />
+                <MilestoneTracker projectId={projectId} showPaymentActions={isProjectOwner} />
               </TabsContent>
 
               <TabsContent value="messages" className="mt-6">
-                <ChatInterface
-                  projectId={projectId}
-                  receiverId={isProjectOwner ? project.freelancerId || '' : project.clientId}
-                  receiverName={isProjectOwner ? "Assigned Freelancer" : "Client"}
-                />
+                <MessageProvider projectId={projectId}>
+                  <ChatInterface projectId={projectId} receiverName={isProjectOwner ? "Assigned Freelancer" : "Client"}
+                    receiverId={isProjectOwner ? project.freelancerId || '' : project.clientId} />
+                </MessageProvider>
               </TabsContent>
             </>
           )}

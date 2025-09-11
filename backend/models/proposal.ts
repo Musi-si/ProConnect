@@ -1,12 +1,12 @@
 import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
 import { Project } from './project';
-import { User } from './user'; // Assuming you have a User model
+import { User } from './user';
 
 interface MilestoneAttributes {
   title: string;
   description: string;
-  dueDate: Date;
-  isCompleted: boolean;
+  dueDate: Date | string; // accept string from frontend too
+  isCompleted?: boolean;   // optional, default false
 }
 
 interface ProposalAttributes {
@@ -15,46 +15,36 @@ interface ProposalAttributes {
   projectId: number;    // FK to Project
   budget: number;
   description: string;
-  milestones?: MilestoneAttributes[];
-  coverLetter?: string;
-  proposedBudget?: number;
-  proposedTimeline?: string;
+  milestones: MilestoneAttributes[];
+  portfolioSamples: string[];
+  proposedTimeline?: string;  // Add timeline field
+  questions?: string | null;   // Add questions field
   status?: 'pending' | 'accepted' | 'rejected';
-  portfolioSamples?: string[];
-  questions?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 type ProposalCreationAttributes = Optional<
   ProposalAttributes,
-  | 'id'
-  | 'milestones'
-  | 'coverLetter'
-  | 'proposedBudget'
-  | 'proposedTimeline'
-  | 'status'
-  | 'portfolioSamples'
-  | 'questions'
-  | 'createdAt'
-  | 'updatedAt'
+  'id' | 'status' | 'createdAt' | 'updatedAt' | 'proposedTimeline' | 'questions'
 >;
 
-class Proposal extends Model<ProposalAttributes, ProposalCreationAttributes> implements ProposalAttributes {
-  public id!: number;
-  public freelancerId!: number;
-  public projectId!: number;
-  public budget!: number;
-  public description!: string;
-  public milestones?: MilestoneAttributes[];
-  public coverLetter?: string;
-  public proposedBudget?: number;
-  public proposedTimeline?: string;
-  public status?: 'pending' | 'accepted' | 'rejected';
-  public portfolioSamples?: string[];
-  public questions?: string | null;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+class Proposal
+  extends Model<ProposalAttributes, ProposalCreationAttributes>
+  implements ProposalAttributes
+{
+  declare id: number;
+  declare freelancerId: number;
+  declare projectId: number;
+  declare budget: number;
+  declare description: string;
+  declare milestones: MilestoneAttributes[];
+  declare portfolioSamples: string[];
+  declare proposedTimeline?: string;
+  declare questions?: string | null;
+  declare status: 'pending' | 'accepted' | 'rejected';
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 
   // Associations
   public static associate() {
@@ -92,22 +82,23 @@ function initProposal(sequelize: Sequelize) {
         defaultValue: [],
         allowNull: false,
       },
-      coverLetter: DataTypes.TEXT,
-      proposedBudget: DataTypes.FLOAT,
-      proposedTimeline: DataTypes.STRING,
-      status: {
-        type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
-        defaultValue: 'pending',
-      },
       portfolioSamples: {
         type: DataTypes.JSON,
         defaultValue: [],
         allowNull: false,
       },
+      proposedTimeline: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       questions: {
         type: DataTypes.TEXT,
         allowNull: true,
-        defaultValue: null,
+      },
+      status: {
+        type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
+        defaultValue: 'pending',
+        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,
@@ -122,6 +113,8 @@ function initProposal(sequelize: Sequelize) {
       sequelize,
       tableName: 'proposals',
       timestamps: true,
+      updatedAt: 'updatedAt',
+      createdAt: 'createdAt',
     }
   );
 }

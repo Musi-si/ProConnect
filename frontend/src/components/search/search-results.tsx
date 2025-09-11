@@ -6,20 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import {
-  StarIcon,
-  MapPinIcon,
   ClockIcon,
   DollarSignIcon,
-  UserIcon,
-  BriefcaseIcon,
-  SearchIcon
+  SearchIcon,
 } from "lucide-react";
 import type { User, Project } from "@shared/schema";
 
-// ✅ import your contexts
+// Contexts
 import { useProject } from "@/contexts/project-context";
-// (assuming you also have a user/freelancer context)
-import { useUser } from "@/contexts/user-context";
+import { useFreelancers } from "@/contexts/freelancer-context";
 
 interface SearchResultsProps {
   resultType: "freelancers" | "projects";
@@ -32,7 +27,7 @@ export function SearchResults({
   searchQuery,
   filters,
 }: SearchResultsProps) {
-  // ✅ fetch from context instead of props
+  // Projects context
   const {
     projects,
     isLoading: projectsLoading,
@@ -41,22 +36,18 @@ export function SearchResults({
     hasMore: hasMoreProjects,
   } = useProject({ searchQuery, filters });
 
-  const {
-    users,
-    isLoading: usersLoading,
-    totalCount: userCount,
-    fetchMore: fetchMoreUsers,
-    hasMore: hasMoreUsers,
-  } = useUser({ searchQuery, filters });
+  // Freelancers context
+  const { freelancers, isLoading: freelancersLoading } = useFreelancers();
+  console.log('skills: ', freelancers.skills)
 
-  const isLoading = resultType === "projects" ? projectsLoading : usersLoading;
+  // Determine which results to display
   const results: (Project | User)[] =
-    resultType === "projects" ? projects : users;
-  const totalCount = resultType === "projects" ? projectCount : userCount;
-  const onLoadMore =
-    resultType === "projects" ? fetchMoreProjects : fetchMoreUsers;
-  const hasMore =
-    resultType === "projects" ? hasMoreProjects : hasMoreUsers;
+    resultType === "projects" ? projects ?? [] : freelancers ?? [];
+
+  const isLoading = resultType === "projects" ? projectsLoading : freelancersLoading;
+  const totalCount = resultType === "projects" ? projectCount : results.length;
+  const hasMore = resultType === "projects" ? hasMoreProjects : false; // freelancers list may not support pagination
+  const onLoadMore = resultType === "projects" ? fetchMoreProjects : undefined;
 
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase();
@@ -64,21 +55,15 @@ export function SearchResults({
   const formatTimeAgo = (date: Date | string) => {
     const now = new Date();
     const past = new Date(date);
-    const diffInHours = Math.floor(
-      (now.getTime() - past.getTime()) / (1000 * 60 * 60)
-    );
-
+    const diffInHours = Math.floor((now.getTime() - past.getTime()) / (1000 * 60 * 60));
     if (diffInHours < 1) return "Just now";
     if (diffInHours < 24) return `${diffInHours}h ago`;
-
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 30) return `${diffInDays}d ago`;
-
-    const diffInMonths = Math.floor(diffInDays / 30);
-    return `${diffInMonths}mo ago`;
+    return `${Math.floor(diffInDays / 30)}mo ago`;
   };
 
-  // ✅ Loading skeleton
+  // Loading skeleton
   if (isLoading && results.length === 0) {
     return (
       <div className="space-y-6">
@@ -110,7 +95,7 @@ export function SearchResults({
     );
   }
 
-  // ✅ No results
+  // No results
   if (results.length === 0) {
     return (
       <div className="text-center py-16">
@@ -134,8 +119,7 @@ export function SearchResults({
               className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] transition font-semibold"
               data-testid="browse-all"
             >
-              Browse All{" "}
-              {resultType === "projects" ? "Projects" : "Freelancers"}
+              Browse All {resultType === "projects" ? "Projects" : "Freelancers"}
             </Button>
           </Link>
         </div>
@@ -143,30 +127,29 @@ export function SearchResults({
     );
   }
 
-  // ✅ Render results
+  // Render results
   return (
     <div className="space-y-6">
-      {/* Results Header */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           Showing {results.length} of {totalCount} {resultType}
         </div>
       </div>
 
-      {/* Results Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {results.map((result) =>
           resultType === "freelancers" ? (
-            // 🔹 Freelancer card
             <FreelancerCard key={(result as User).id} freelancer={result as User} />
           ) : (
-            // 🔹 Project card
-            <ProjectCard key={(result as Project).id} project={result as Project} formatTimeAgo={formatTimeAgo} />
+            <ProjectCard
+              key={(result as Project).id}
+              project={result as Project}
+              formatTimeAgo={formatTimeAgo}
+            />
           )
         )}
       </div>
 
-      {/* Load More */}
       {hasMore && onLoadMore && (
         <div className="text-center py-6">
           <Button
@@ -177,9 +160,7 @@ export function SearchResults({
           >
             {isLoading
               ? "Loading..."
-              : `Load More ${
-                  resultType === "projects" ? "Projects" : "Freelancers"
-                }`}
+              : `Load More ${resultType === "projects" ? "Projects" : "Freelancers"}`}
           </Button>
         </div>
       )}
@@ -187,36 +168,94 @@ export function SearchResults({
   );
 }
 
-// ✅ Extracted mini-cards (cleaner)
+// Freelancer mini-card
 function FreelancerCard({ freelancer }: { freelancer: User }) {
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase();
 
+  const openChat = (freelancerId: number) => {
+    // Navigate to chatroom or open modal
+    // For example, using Wouter:
+    window.location.href = `/chat/${freelancerId}`;
+    // Or if you use a router:
+    // navigate(`/chat/${freelancerId}`);
+  };
+
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
+    <Card className="hover:shadow-md transition-shadow bg-white/95 dark:bg-card/95 shadow-2xl">
       <CardContent className="p-6">
-        <div className="flex items-start space-x-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={freelancer.avatar} alt={freelancer.username} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-              {getInitials(`${freelancer.firstName} ${freelancer.lastName}`)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-3">
-            <Link href={`/freelancers/${freelancer.id}`}>
-              <h3 className="font-semibold text-lg hover:text-primary transition-colors cursor-pointer">
-                {freelancer.firstName} {freelancer.lastName}
-              </h3>
-            </Link>
-            {/* ...same as your original */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 flex space-x-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={freelancer.profilePicture} alt={freelancer.username} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                {getInitials(`${freelancer.firstName} ${freelancer.lastName}`)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 space-y-2">
+              <Link href={''}>
+                <h3 className="font-semibold text-lg hover:text-primary transition-colors cursor-pointer">
+                  {freelancer.firstName} {freelancer.lastName}
+                </h3>
+              </Link>
+              <p className="text-m text-muted-foreground line-clamp-2 mt-1">
+                <span className="text-[var(--primary)]">Bio:</span> {freelancer.bio ?? "No bio provided."}
+              </p>
+              <p className="text-m text-muted-foreground line-clamp-2 mt-1">
+                <span className="text-[var(--primary)]">Location:</span> {freelancer.location ?? "No location provided."}
+              </p>
+              <p className="text-m text-muted-foreground line-clamp-2 mt-1">
+                <span className="text-[var(--primary)]">Rating:</span> {freelancer.rating ?? "N/A"}
+              </p>
+              <div className="flex flex-wrap gap-2 mt-2"><span className="text-[var(--primary)]">Skills:</span>
+                {JSON.parse(freelancer.skills || "[]").length > 0 ? (
+                  JSON.parse(freelancer.skills).slice(0, 5).map((skill: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="text-sm">
+                      {skill}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-muted-foreground text-m">No skills specified</span>
+                )}
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Stats and message button */}
+        <div className="flex items-center justify-between text-sm mt-4">
+          <div className="flex items-center space-x-4 text-muted-foreground">
+            <span className="flex items-center mr-10">
+              <DollarSignIcon className="h-3 w-3 mr-1" />
+              {freelancer.totalEarnings ?? "0"}
+            </span>
+            <span className="flex items-center">
+              <ClockIcon className="h-3 w-3 mr-1" />
+              {freelancer.reviewCount ?? 0} reviews
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
+            onClick={() => openChat(freelancer.id)}
+          >
+            Message
+          </Button>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function ProjectCard({ project, formatTimeAgo }: { project: Project; formatTimeAgo: (date: string | Date) => string }) {
+// Project mini-card
+function ProjectCard({
+  project,
+  formatTimeAgo,
+}: {
+  project: Project;
+  formatTimeAgo: (date: string | Date) => string;
+}) {
   return (
     <Card className="hover:shadow-md transition-shadow bg-white/95 dark:bg-card/95 shadow-2xl">
       <CardContent className="p-6">
@@ -232,7 +271,9 @@ function ProjectCard({ project, formatTimeAgo }: { project: Project; formatTimeA
             </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {project.skills?.slice(0, 5).map((skill: string, index: number) => (
-                <Badge key={index} variant="secondary" className="text-xs">{skill}</Badge>
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {skill}
+                </Badge>
               ))}
             </div>
           </div>
@@ -243,7 +284,8 @@ function ProjectCard({ project, formatTimeAgo }: { project: Project; formatTimeA
               <DollarSignIcon className="h-3 w-3 mr-1" />${project.budget}
             </span>
             <span className="flex items-center">
-              <ClockIcon className="h-3 w-3 mr-1" />{project.timeline}
+              <ClockIcon className="h-3 w-3 mr-1" />
+              {project.timeline}
             </span>
           </div>
           <Link href={`/projects/${project.id}`}>

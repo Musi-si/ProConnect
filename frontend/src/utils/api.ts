@@ -1,7 +1,7 @@
 export const API_BASE_URL = "http://localhost:5000/api";
 
 function buildQuery(params?: Record<string, any>): string {
-  if (!params) return "";
+  if (!params || Object.keys(params).length === 0) return ""; // ✅ check empty
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (Array.isArray(value)) {

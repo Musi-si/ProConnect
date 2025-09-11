@@ -58,7 +58,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/projects', projectRoutes);
-// app.use('/api/projects/:projectId/proposals', proposalRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/milestones', milestoneRoutes);
 app.use('/api/notifications', notificationRoutes);

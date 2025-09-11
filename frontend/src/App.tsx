@@ -5,6 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./contexts/auth-context";
 import { ThemeProvider } from "./contexts/theme-context";
+import { ProjectProvider } from "./contexts/project-context";
+import { UserProvider } from "./contexts/user-context";
+import { ProposalProvider } from "./contexts/proposal-context";
+import { FreelancerProvider } from "./contexts/freelancer-context";
+
 import Home from "@/pages/home";
 import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
@@ -17,9 +22,6 @@ import BrowseFreelancers from "@/pages/freelancers/browse";
 import EditProfile from "@/pages/profile/edit";
 import Messages from "@/pages/messages";
 import NotFound from "@/pages/not-found";
-import { ProjectProvider } from "./contexts/project-context";
-import { UserProvider } from "./contexts/user-context";
-import { ProposalProvider } from "./contexts/proposal-context";
 
 function Router() {
   return (
@@ -49,8 +51,10 @@ function App() {
             <UserProvider>
               <ProjectProvider>
                 <ProposalProvider>
-                  <Toaster />
-                  <Router />
+                  <FreelancerProvider>
+                    <Toaster />
+                    <Router />
+                  </FreelancerProvider>
                 </ProposalProvider>
               </ProjectProvider>
             </UserProvider>

@@ -15,14 +15,14 @@ interface MessageAttributes {
 type MessageCreationAttributes = Optional<MessageAttributes, 'id' | 'isRead' | 'createdAt' | 'updatedAt'>;
 
 class Message extends Model<MessageAttributes, MessageCreationAttributes> implements MessageAttributes {
-  public id!: number;
-  public projectId!: number;
-  public senderId!: number;
-  public receiverId!: number;
-  public content!: string;
-  public isRead?: boolean;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: number;
+  declare projectId: number;
+  declare senderId: number;
+  declare receiverId: number;
+  declare content: string;
+  declare isRead?: boolean;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 export function initMessage(sequelize: Sequelize) {

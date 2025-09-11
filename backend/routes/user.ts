@@ -1,5 +1,5 @@
 import express from "express";
-import { updateProfile } from "../controllers/user";
+import { updateProfile, getFreelancers } from "../controllers/user";
 import upload from "../middlewares/upload";
 import { authMiddleware } from "../middlewares/auth";
 
@@ -51,5 +51,44 @@ const router = express.Router();
  *         description: Server error
  */
 router.put("/profile", authMiddleware, upload.single("profilePicture"), updateProfile);
+
+/**
+ * @swagger
+ * /api/users/freelancers:
+ *   get:
+ *     summary: Get all freelancers
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: List of freelancers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Freelancer ID
+ *                   firstName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *                   username:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   avatar:
+ *                     type: string
+ *                     description: URL to freelancer's profile picture
+ *                   rating:
+ *                     type: number
+ *                     description: Freelancer rating
+ *                   reviewCount:
+ *                     type: number
+ *                     description: Number of reviews the freelancer has
+ */
+router.get("/freelancers", getFreelancers);
 
 export default router;

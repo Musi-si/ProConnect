@@ -1,25 +1,18 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { insertProposalSchema, type InsertProposal } from "@shared/schema";
-import { useProposal } from "@/contexts/proposal-context";
 import { PlusIcon, XIcon, LoaderIcon, InfoIcon } from "lucide-react";
-import { z } from "zod";
-// import { submitProposal } from "../../utils/proposals";
+import { useProposal } from "@/contexts/proposal-context";
 import { useAuth } from "@/contexts/auth-context";
-
-const proposalFormSchema = insertProposalSchema.omit({
-  projectId: true,
-  freelancerId: true,
-});
 
 interface Milestone {
   title: string;
@@ -34,6 +27,21 @@ interface ProposalFormProps {
   projectBudget: string;
 }
 
+interface ProposalFormData {
+  description: string;
+  proposedBudget: string;
+  proposedTimeline: string;
+  questions?: string;
+}
+
+const timelines = [
+  "Less than 1 week",
+  "1-2 weeks", 
+  "1 month",
+  "2-3 months",
+  "More than 3 months",
+];
+
 export function ProposalForm({ projectId, projectTitle, projectBudget }: ProposalFormProps) {
   const { submitProposal, isLoading } = useProposal();
   const { user } = useAuth();
@@ -42,61 +50,62 @@ export function ProposalForm({ projectId, projectTitle, projectBudget }: Proposa
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>([]);
   const [newPortfolioLink, setNewPortfolioLink] = useState("");
   const [error, setError] = useState("");
+  const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof proposalFormSchema>>({
-    resolver: zodResolver(proposalFormSchema),
+  const form = useForm<ProposalFormData>({
     defaultValues: {
-      coverLetter: "",
+      description: "",
       proposedBudget: "",
       proposedTimeline: "",
-      milestones: [],
-      portfolioSamples: [],
       questions: "",
     },
   });
 
-  const handleSubmit = async (data: z.infer<typeof proposalFormSchema>) => {
+  const handleSubmit = async (data: ProposalFormData) => {
     try {
       setError("");
 
       if (!user?.id) throw new Error("User not logged in");
 
-      // Ensure budget is a number
       const parsedBudget = Number(data.proposedBudget);
-      if (isNaN(parsedBudget)) throw new Error("Invalid budget");
+      if (isNaN(parsedBudget) || parsedBudget <= 0) throw new Error("Budget must be a valid number");
 
       await submitProposal(projectId, {
-        description: data.coverLetter || "No description provided", // map coverLetter to description
-        coverLetter: data.coverLetter,
-        proposedBudget: parsedBudget,
+        description: data.description,
+        budget: parsedBudget,
         proposedTimeline: data.proposedTimeline,
         questions: data.questions || null,
         projectId: Number(projectId),
         freelancerId: user.id,
-        milestones: milestones || [],
-        portfolioSamples: portfolioLinks || [],
+        milestones,
+        portfolioSamples: portfolioLinks,
       });
+
+      toast({
+        title: "Proposal Submitted!",
+        description: "Your proposal has been sent successfully."
+      })
+
+      form.reset();
+      setMilestones([]);
+      setPortfolioLinks([]);
     } catch (err: any) {
-      setError(err.message || "Failed to submit proposal. Please try again.");
+      toast({
+        title: "Failed to Submit Proposal",
+        description: err.message || "Please try again.",
+        variant: "destructive",
+      });
+      setError(err.message || "Failed to submit proposal.");
     }
   };
 
-  const addMilestone = () => {
-    setMilestones([
-      ...milestones,
-      { title: "", description: "", amount: 0, dueDate: "" },
-    ]);
-  };
-
+  const addMilestone = () => setMilestones([...milestones, { title: "", description: "", amount: 0, dueDate: "" }]);
   const updateMilestone = (index: number, field: keyof Milestone, value: any) => {
     const updated = [...milestones];
     updated[index] = { ...updated[index], [field]: value };
     setMilestones(updated);
   };
-
-  const removeMilestone = (index: number) => {
-    setMilestones(milestones.filter((_, i) => i !== index));
-  };
+  const removeMilestone = (index: number) => setMilestones(milestones.filter((_, i) => i !== index));
 
   const addPortfolioLink = () => {
     const link = newPortfolioLink.trim();
@@ -105,15 +114,13 @@ export function ProposalForm({ projectId, projectTitle, projectBudget }: Proposa
       setNewPortfolioLink("");
     }
   };
-
-  const removePortfolioLink = (linkToRemove: string) => {
+  const removePortfolioLink = (linkToRemove: string) =>
     setPortfolioLinks(portfolioLinks.filter(link => link !== linkToRemove));
-  };
 
   const totalMilestoneAmount = milestones.reduce((sum, m) => sum + (m.amount || 0), 0);
 
   return (
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-3xl mx-auto bg-white/95 dark:bg-card/95 shadow-2xl rounded-2xl">
       <CardHeader>
         <CardTitle>Submit Proposal</CardTitle>
         <CardDescription>
@@ -123,62 +130,76 @@ export function ProposalForm({ projectId, projectTitle, projectBudget }: Proposa
       <CardContent>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="rounded-lg">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          {/* Project Info */}
-          <div className="p-4 bg-muted/50 rounded-lg">
-            <h3 className="font-semibold mb-2">Project Details</h3>
-            <p className="text-sm text-muted-foreground mb-1">Title: {projectTitle}</p>
-            <p className="text-sm text-muted-foreground">Client Budget: ${projectBudget}</p>
-          </div>
-
           {/* Cover Letter */}
           <div className="space-y-2">
-            <Label htmlFor="coverLetter">Cover Letter *</Label>
+            <Label htmlFor="description">Cover Letter *</Label>
             <Textarea
-              id="coverLetter"
+              id="description"
               rows={6}
               placeholder="Explain why you're the perfect fit for this project..."
-              {...form.register("coverLetter")}
+              {...form.register("description", { required: "Description is required" })}
+              className="border border-border rounded-lg p-3 focus:ring-2 focus:ring-primary"
               disabled={isLoading}
-              data-testid="cover-letter-textarea"
             />
-            {form.formState.errors.coverLetter && (
-              <p className="text-sm text-destructive">{form.formState.errors.coverLetter.message}</p>
+            {form.formState.errors.description && (
+              <p className="text-sm text-destructive">{form.formState.errors.description.message}</p>
             )}
           </div>
 
-          {/* Budget and Timeline */}
+          {/* Budget & Timeline */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="proposedBudget">Your Proposed Budget *</Label>
+              <Label htmlFor="proposedBudget">Proposed Budget *</Label>
               <Input
                 id="proposedBudget"
                 type="number"
                 placeholder="Enter your budget"
-                {...form.register("proposedBudget")}
+                {...form.register("proposedBudget", {
+                  required: "Budget is required",
+                  min: { value: 1, message: "Budget must be greater than 0" },
+                  valueAsNumber: true,
+                })}
+                className="border border-border rounded-lg focus:ring-2 focus:ring-primary"
                 disabled={isLoading}
-                data-testid="proposed-budget-input"
               />
               {form.formState.errors.proposedBudget && (
                 <p className="text-sm text-destructive">{form.formState.errors.proposedBudget.message}</p>
               )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="proposedTimeline">Delivery Timeline *</Label>
-              <Input
-                id="proposedTimeline"
-                placeholder="e.g., 2 weeks, 1 month"
-                {...form.register("proposedTimeline")}
+              <Select
+                value={form.watch("proposedTimeline")}
+                onValueChange={(value) => form.setValue("proposedTimeline", value)}
                 disabled={isLoading}
-                data-testid="proposed-timeline-input"
-              />
+              >
+                <SelectTrigger
+                  id="proposedTimeline"
+                  className="bg-white dark:bg-card/80 border border-border text-[var(--foreground)] dark:text-white"
+                >
+                  <SelectValue placeholder="Select a delivery timeline" />
+                </SelectTrigger>
+                <SelectContent className="backdrop-blur-md bg-white/80 dark:bg-card/80 shadow-lg">
+                  {timelines.map((timeline) => (
+                    <SelectItem
+                      key={timeline}
+                      value={timeline}
+                      className="hover:bg-primary hover:text-white transition-colors"
+                    >
+                      {timeline}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {form.formState.errors.proposedTimeline && (
-                <p className="text-sm text-destructive">{form.formState.errors.proposedTimeline.message}</p>
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.proposedTimeline.message}
+                </p>
               )}
             </div>
           </div>
@@ -190,106 +211,89 @@ export function ProposalForm({ projectId, projectTitle, projectBudget }: Proposa
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
                 onClick={addMilestone}
                 disabled={isLoading}
-                data-testid="add-milestone-button"
               >
-                <PlusIcon className="h-4 w-4 mr-1" />
-                Add Milestone
+                <PlusIcon className="h-4 w-4" /> Add Milestone
               </Button>
             </div>
-
-            {milestones.length > 0 && (
-              <div className="space-y-4">
-                {milestones.map((milestone, index) => (
-                  <Card key={index} className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-medium">Milestone {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeMilestone(index)}
-                        disabled={isLoading}
-                        data-testid={`remove-milestone-${index}`}
-                      >
-                        <XIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Milestone Title</Label>
-                        <Input
-                          value={milestone.title}
-                          onChange={(e) => updateMilestone(index, 'title', e.target.value)}
-                          placeholder="e.g., Design Phase"
-                          disabled={isLoading}
-                          data-testid={`milestone-title-${index}`}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Amount ($)</Label>
-                        <Input
-                          type="number"
-                          value={milestone.amount || ''}
-                          onChange={(e) => updateMilestone(index, 'amount', parseFloat(e.target.value) || 0)}
-                          placeholder="Amount"
-                          disabled={isLoading}
-                          data-testid={`milestone-amount-${index}`}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-4 mt-4">
-                      <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Textarea
-                          rows={3}
-                          value={milestone.description}
-                          onChange={(e) => updateMilestone(index, 'description', e.target.value)}
-                          placeholder="Describe the deliverables"
-                          disabled={isLoading}
-                          data-testid={`milestone-description-${index}`}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Due Date</Label>
-                        <Input
-                          type="date"
-                          value={milestone.dueDate}
-                          onChange={(e) => updateMilestone(index, 'dueDate', e.target.value)}
-                          disabled={isLoading}
-                          data-testid={`milestone-date-${index}`}
-                        />
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-                
-                {totalMilestoneAmount > 0 && (
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <InfoIcon className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">
-                        Total milestone amount: ${totalMilestoneAmount}
-                      </span>
-                    </div>
+            {milestones.map((milestone, index) => (
+              <Card key={index} className="p-4 rounded-2xl shadow-lg border border-border">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium text-gray-700">Milestone {index + 1}</h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeMilestone(index)}
+                    disabled={isLoading}
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input
+                      value={milestone.title}
+                      onChange={(e) => updateMilestone(index, "title", e.target.value)}
+                      placeholder="Design Phase"
+                      className="border border-border rounded-lg focus:ring-2 focus:ring-primary"
+                      disabled={isLoading}
+                    />
                   </div>
-                )}
+                  <div className="space-y-2">
+                    <Label>Amount ($)</Label>
+                    <Input
+                      type="number"
+                      value={milestone.amount || ""}
+                      onChange={(e) =>
+                        updateMilestone(index, "amount", parseFloat(e.target.value) || 0)
+                      }
+                      placeholder="Amount"
+                      className="border border-border rounded-lg focus:ring-2 focus:ring-primary"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 mt-4">
+                  <Label>Description</Label>
+                  <Textarea
+                    rows={3}
+                    value={milestone.description}
+                    onChange={(e) => updateMilestone(index, "description", e.target.value)}
+                    placeholder="Describe deliverables"
+                    className="border border-border rounded-lg focus:ring-2 focus:ring-primary"
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2 mt-4">
+                  <Label>Due Date</Label>
+                  <Input
+                    type="date"
+                    value={milestone.dueDate}
+                    onChange={(e) => updateMilestone(index, "dueDate", e.target.value)}
+                    className="border border-border rounded-lg focus:ring-2 focus:ring-primary"
+                    disabled={isLoading}
+                  />
+                </div>
+              </Card>
+            ))}
+            {totalMilestoneAmount > 0 && (
+              <div className="p-3 bg-primary/10 rounded-lg flex items-center gap-2 text-primary">
+                <InfoIcon className="h-4 w-4" />
+                Total milestone amount: ${totalMilestoneAmount}
               </div>
             )}
           </div>
 
           {/* Portfolio Links */}
           <div className="space-y-2">
-            <Label>Relevant Portfolio Examples</Label>
+            <Label>Portfolio Samples</Label>
             <div className="flex flex-wrap gap-2 mb-3">
               {portfolioLinks.map((link, index) => (
-                <Badge key={index} variant="secondary" className="px-3 py-1">
+                <Badge key={index} variant="secondary" className="px-3 py-1 rounded-full">
                   <a href={link} target="_blank" rel="noopener noreferrer" className="hover:underline">
                     Portfolio {index + 1}
                   </a>
@@ -300,7 +304,6 @@ export function ProposalForm({ projectId, projectTitle, projectBudget }: Proposa
                     className="ml-1 h-auto p-0 hover:bg-transparent"
                     onClick={() => removePortfolioLink(link)}
                     disabled={isLoading}
-                    data-testid={`remove-portfolio-${index}`}
                   >
                     <XIcon className="h-3 w-3" />
                   </Button>
@@ -311,47 +314,43 @@ export function ProposalForm({ projectId, projectTitle, projectBudget }: Proposa
               <Input
                 value={newPortfolioLink}
                 onChange={(e) => setNewPortfolioLink(e.target.value)}
-                placeholder="Add portfolio URL"
+                placeholder="Add portfolio link"
                 disabled={isLoading}
-                data-testid="portfolio-link-input"
               />
               <Button
                 type="button"
                 variant="outline"
+                className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
                 onClick={addPortfolioLink}
                 disabled={!newPortfolioLink.trim() || isLoading}
-                data-testid="add-portfolio-button"
               >
                 <PlusIcon className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* Questions */}
+          {/* Additional Questions */}
           <div className="space-y-2">
-            <Label htmlFor="questions">Questions for the Client (Optional)</Label>
+            <Label htmlFor="questions">Questions / Notes (Optional)</Label>
             <Textarea
               id="questions"
-              rows={4}
-              placeholder="Any questions or clarifications you need?"
+              rows={3}
+              placeholder="Any questions for the client?"
               {...form.register("questions")}
+              className="border border-border rounded-lg focus:ring-2 focus:ring-primary"
               disabled={isLoading}
-              data-testid="questions-textarea"
             />
           </div>
 
-          <Separator />
-
-          {/* Submit Button */}
-          <div className="flex items-center justify-between pt-4">
-            <div className="text-sm text-muted-foreground">
-              <InfoIcon className="h-4 w-4 inline mr-1" />
-              Your proposal will be visible to the client immediately
-            </div>
+          {/* Submit */}
+          <div className="flex items-center justify-between pt-6 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              Proposal submission fee: $0 (free to submit)
+            </p>
             <Button
               type="submit"
+              className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
               disabled={isLoading || form.formState.isSubmitting}
-              data-testid="submit-proposal-button"
             >
               {isLoading || form.formState.isSubmitting ? (
                 <>

@@ -40,3 +40,18 @@ export const updateProfile = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to update profile" });
   }
 };
+
+// Fetch freelancers
+export const getFreelancers = async (req: Request, res: Response) => {
+  try {
+    const freelancers = await User.findAll({
+      where: { role: "freelancer" },
+      attributes: {
+        exclude: ['password', 'emailVerificationToken', 'resetPasswordToken']
+      }
+    });
+    res.json(freelancers);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch freelancers" });
+  }
+};

@@ -5,7 +5,8 @@ import { Proposal } from '../types';
 export const getProposals = async (projectId: string): Promise<{ proposals: Proposal[] }> => {
   try {
     const res = await api.get(`/projects/${projectId}/proposals/all`);
-    return { proposals: res.data }; // wrap in object to match react-query usage
+    console.log(res.data)
+    return res.data.proposals ? res.data : { proposals: res.data };
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Failed to fetch proposals');
   }
@@ -32,7 +33,7 @@ export const acceptProposal = async (projectId: string, proposalId: string): Pro
     const token = localStorage.getItem("token");
     if (!token) throw new Error("No auth token found");
 
-    const res = await api.put(`/projects/${projectId}/proposals/${proposalId}/accept`, {
+    const res = await api.put(`/projects/${projectId}/proposals/${proposalId}/accept`, {}, {
       Authorization: `Bearer ${token}`,
     });
     return res.data;

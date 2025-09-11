@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Proposal } from "../models/proposal";
 import { Project } from "../models/project";
+import { User } from "../models/user";
 
 export class ProposalsController {
   // Get a single proposal (with project info)
@@ -25,6 +26,13 @@ export class ProposalsController {
       const { projectId } = req.params;
       const proposals = await Proposal.findAll({
         where: { projectId },
+        include: [
+          {
+            model: User,
+            as: 'freelancer',
+            attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'rating', 'reviewCount', 'projectsCompleted'],
+          },
+        ],
         order: [["createdAt", "DESC"]],
       });
       res.json(proposals);

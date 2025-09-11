@@ -81,8 +81,12 @@ export function ProjectCard({ project, showClientInfo = false }: ProjectCardProp
         {/* Skills */}
         {project.skills?.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {project.skills.slice(0, 4).map((skill, idx) => (
-              <Badge key={idx} variant="secondary" className="text-xs">{skill}</Badge>
+            {(Array.isArray(project.skills) ? project.skills : project.skills?.split(',').map(s => s.trim()) || [])
+              .slice(0, 4)
+              .map((skill, idx) => (
+                <Badge key={idx} variant="secondary" className="px-3 py-1">
+                  {skill}
+                </Badge>
             ))}
             {project.skills.length > 4 && (
               <Badge variant="secondary" className="text-xs">+{project.skills.length - 4} more</Badge>
