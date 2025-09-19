@@ -30,12 +30,12 @@ export function FreelancerDashboard() {
             <p className="opacity-90">Ready to find your next great project?</p>
           </div>
           <div className="flex items-center space-x-6 text-center">
-            <div>
+            {/* <div>
               <div className="text-2xl font-bold">{stats?.activeBids || 0}</div>
               <div className="text-sm opacity-90">Active Bids</div>
-            </div>
+            </div> */}
             <div>
-              <div className="text-2xl font-bold">${stats?.monthlyEarnings || '0'}</div>
+              <div className="text-2xl font-bold">${user.totalEarnings || '0'}</div>
               <div className="text-sm opacity-90">This Month</div>
             </div>
           </div>
@@ -63,16 +63,25 @@ export function FreelancerDashboard() {
                 <div className="space-y-3 mt-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Projects Completed</span>
-                    <span className="font-medium">{stats?.completedProjects || 0}</span>
+                    <span className="font-medium">{user.completedProjects || 0}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Total Earned</span>
-                    <span className="font-medium">${stats?.totalEarnings || 0}</span>
+                    <span className="font-medium">${user.totalEarnings || 0}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Response Rate</span>
-                    <span className="font-medium text-green-600">{stats?.responseRate || 0}%</span>
+                    <span className="text-muted-foreground">Location</span>
+                    <span className="font-medium text-green-600">{user.location}</span>
                   </div>
+                  {Array.isArray(user.skills) && user.skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {user.skills.map((skill, i) => (
+                        <Badge key={i} variant="secondary" className="px-3 py-1">{skill}</Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No skills added yet</p>
+                  )}
                 </div>
               </div>
 

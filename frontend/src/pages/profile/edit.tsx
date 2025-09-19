@@ -315,7 +315,7 @@ export default function EditProfile() {
                 <CardTitle>Skills & Expertise</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {skills.length > 0 ? (
+                {Array.isArray(skills) && skills.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill, i) => (
                       <Badge key={i} variant="secondary" className="px-3 py-1">
@@ -359,7 +359,7 @@ export default function EditProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {portfolioLinks.length > 0 && (
+                {Array.isArray(portfolioLinks) && portfolioLinks.length > 0 && (
                   <div className="space-y-2">
                     {portfolioLinks.map((link, i) => (
                       <div

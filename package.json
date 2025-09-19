@@ -89,6 +89,7 @@
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
     "sequelize": "^6.37.7",
+    "socket.io-client": "^4.8.1",
     "stripe": "^18.5.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",

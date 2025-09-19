@@ -29,9 +29,7 @@ import { initNotification } from './models/notification';
 
 // Import routes
 import authRoutes from './routes/auth';
-import messageRoutes from './routes/message';
 import projectRoutes from './routes/project';
-// import proposalRoutes from './routes/proposal';
 import reviewRoutes from './routes/review';
 import milestoneRoutes from './routes/milestone';
 import notificationRoutes from './routes/notification';
@@ -56,7 +54,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/messages', messageRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/milestones', milestoneRoutes);

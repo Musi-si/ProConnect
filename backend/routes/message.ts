@@ -1,9 +1,8 @@
-// routes/message.ts
 import { Router } from 'express';
 import { MessageController } from '../controllers/message';
 import { authMiddleware } from '../middlewares/auth';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 const messageController = new MessageController();
 
 /**
@@ -12,6 +11,57 @@ const messageController = new MessageController();
  *   name: Messages
  *   description: Messaging within projects
  */
+
+/**
+ * @swagger
+ * /api/projects/{projectId}/messages/all:
+ *   get:
+ *     summary: Get all messages for a project
+ *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project
+ *     responses:
+ *       200:
+ *         description: List of messages for this project
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Project not found
+ */
+router.get('/all', authMiddleware, messageController.getMessagesByProject.bind(messageController));
+
+/**
+ * @swagger
+ * /api/projects/{projectId}/messages/add:
+ *   post:
+ *     summary: Create a new message for a project
+ *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 description: Message content
+ *     responses:
+ *       201:
+ *         description: Message created
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/add', authMiddleware, messageController.createMessage.bind(messageController));
 
 /**
  * @swagger
@@ -24,89 +74,21 @@ const messageController = new MessageController();
  *     parameters:
  *       - in: path
  *         name: projectId
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: The project ID
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: The message ID
+ *         description: The ID of the message
  *     responses:
  *       200:
- *         description: The requested message
- *       404:
- *         description: Message not found
+ *         description: Message details
  *       401:
  *         description: Unauthorized
  */
 router.get('/:id', authMiddleware, messageController.getMessage.bind(messageController));
-
-/**
- * @swagger
- * /api/projects/{projectId}/messages:
- *   get:
- *     summary: Get all messages for a project
- *     tags: [Messages]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         schema:
- *           type: string
- *         required: true
- *         description: The project ID
- *     responses:
- *       200:
- *         description: List of messages for the project
- *       404:
- *         description: Project not found or no messages
- *       401:
- *         description: Unauthorized
- */
-router.get('/all', authMiddleware, messageController.getMessagesByProject.bind(messageController));
-
-/**
- * @swagger
- * /api/projects/{projectId}/messages/add:
- *   post:
- *     summary: Create a new message for a project
- *     tags: [Messages]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         schema:
- *           type: string
- *         required: true
- *         description: The project ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - content
- *             properties:
- *               content:
- *                 type: string
- *                 example: "This is a project update message"
- *               receiverId:
- *                 type: string
- *                 example: "3"
- *     responses:
- *       201:
- *         description: Message created successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized
- */
-router.post('/add', authMiddleware, messageController.createMessage.bind(messageController));
 
 export default router;

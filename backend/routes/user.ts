@@ -1,5 +1,5 @@
 import express from "express";
-import { updateProfile, getFreelancers } from "../controllers/user";
+import { updateProfile, getFreelancers, getUserById } from "../controllers/user"; // Import getUserById
 import upload from "../middlewares/upload";
 import { authMiddleware } from "../middlewares/auth";
 
@@ -90,5 +90,30 @@ router.put("/profile", authMiddleware, upload.single("profilePicture"), updatePr
  *                     description: Number of reviews the freelancer has
  */
 router.get("/freelancers", getFreelancers);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID
+ *     responses:
+ *       200:
+ *         description: User data
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/:id", authMiddleware, getUserById); // New route for fetching user by ID
 
 export default router;

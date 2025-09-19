@@ -80,28 +80,6 @@ router.post('/add', authMiddleware, authorizeRoles('client'),
 /**
  * @swagger
  * tags:
- *   name: Proposals
- *   description: Manage proposals for a project
- *
- * /api/projects/{projectId}/proposals:
- *   get:
- *     summary: Get all proposals for a project
- *     tags: [Proposals]
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of proposals for this project
- */
-router.use('/:projectId/proposals', proposalRoutes);
-
-/**
- * @swagger
- * tags:
  *   name: Messages
  *   description: Messaging within projects
  *
@@ -155,6 +133,28 @@ router.use('/:projectId/proposals', proposalRoutes);
  *         description: Unauthorized
  */
 router.use('/:projectId/messages', messageRoutes);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Proposals
+ *   description: Manage proposals for a project
+ *
+ * /api/projects/{projectId}/proposals:
+ *   get:
+ *     summary: Get all proposals for a project
+ *     tags: [Proposals]
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of proposals for this project
+ */
+router.use('/:projectId/proposals', proposalRoutes);
 
 /**
  * @swagger

@@ -15,10 +15,16 @@ export const getUsers = async (): Promise<User[]> => {
 // Fetch single user by ID
 export const getUserById = async (id: string): Promise<User> => {
   try {
-    const res = await api.get(`/users/${id}`)
-    return res.data
+    const token = localStorage.getItem("token"); // Assuming token is needed to fetch user by ID
+    if (!token) throw new Error("No auth token found");
+    
+    const res = await api.get(`/users/${id}`, {}, {
+      Authorization: `Bearer ${token}`,
+    });
+    return res; // Assuming api.get returns JSON directly
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Failed to fetch user')
+    console.error("Failed to fetch user by ID API:", error); // Added debug log
+    throw new Error(error.message || 'Failed to fetch user');
   }
 }
 
@@ -36,10 +42,13 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
 export const updateProfile = async (updates: Partial<User>): Promise<User> => {
   try {
     const token = localStorage.getItem("token");
+    if (!token) throw new Error("No auth token found");
+
     const res = await api.put('/users/profile', updates, { Authorization: `Bearer ${token}` })
     return res.data
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Failed to update profile')
+    console.error("Failed to update profile API:", error); // Added debug log
+    throw new Error(error.message || 'Failed to update profile')
   }
 }
 

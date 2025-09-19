@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { ProposalForm } from "@/components/projects/proposal-form";
 import { ProposalList } from "@/components/projects/proposal-list";
@@ -13,10 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { useProject } from "@/contexts/project-context";
-import { MessageProvider } from "@/contexts/message-context"; // ✅ import
+import { MessageProvider } from "@/contexts/message-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import { getUserById } from "@/utils/user";
+import {
   ArrowLeftIcon,
   CalendarIcon,
   DollarSignIcon,
@@ -42,10 +43,27 @@ export default function ProjectDetails() {
   const project = projects.find(p => p.id === projectId) || null;
   const proposals = project?.proposals || [];
 
+  // Fetch client data using project.clientId
+  const { data: clientData, isLoading: clientLoading } = useQuery({
+    queryKey: ['client', project?.clientId],
+    queryFn: () => getUserById(String(project?.clientId)),
+    enabled: !!project?.clientId,
+  });
+
+  // Determine the ID of the other user in the chat
+  const chatReceiverId = user?.role === 'client' ? project?.freelancerId : project?.clientId;
+
+  // Query to fetch the full user data for the chat receiver
+  const { data: receiverData, isLoading: receiverLoading } = useQuery({
+    queryKey: ['chatReceiver', chatReceiverId],
+    queryFn: () => getUserById(String(chatReceiverId)),
+    enabled: !!chatReceiverId,
+  });
+
   // Accept proposal mutation
   const acceptProposalMutation = useMutation({
     mutationFn: async (proposalId: string) => {
-      const response = await apiRequest("PUT", `/api/proposals/${proposalId}/accept`);
+      const response = await apiRequest("PUT", `/api/projects/${projectId}/proposals/${proposalId}/accept`);
       return response.json();
     },
     onSuccess: () => {
@@ -54,10 +72,20 @@ export default function ProjectDetails() {
         description: "The freelancer has been notified and the project has begun.",
       });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['chatReceiver'] });
+      queryClient.invalidateQueries({ queryKey: ['client'] });
+      setActiveTab("messages");
     },
+    onError: (error: any) => {
+      toast({
+        title: "Accept Proposal Failed",
+        description: error.message || "Failed to accept proposal.",
+        variant: "destructive",
+      });
+    }
   });
 
-  if (projectsLoading) {
+  if (projectsLoading || clientLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -65,13 +93,13 @@ export default function ProjectDetails() {
     );
   }
 
-  if (!project) {
+  if (!project || !clientData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
-          <p className="text-muted-foreground mb-4">The project you're looking for doesn't exist.</p>
-          <Link href="/projects/browse">
+          <h2 className="text-2xl font-bold mb-2">Project or Client Not Found</h2>
+          <p className="text-muted-foreground mb-4">The project or client you're looking for doesn't exist.</p>
+          <Link href="/projects/all">
             <Button>Browse Projects</Button>
           </Link>
         </div>
@@ -104,9 +132,9 @@ export default function ProjectDetails() {
     }
   };
 
-  const canSubmitProposal = user?.role === 'freelancer' && project.status === 'open';
   const isProjectOwner = user?.id === project.clientId;
   const isAssignedFreelancer = user?.id === project.freelancerId;
+  const canSubmitProposal = user?.role === 'freelancer' && project.status === 'open' && !isAssignedFreelancer;
 
   // Ensure skills and attachments are parsed correctly
   const skills = Array.isArray(project.skills) ? project.skills : [];
@@ -145,7 +173,7 @@ export default function ProjectDetails() {
             <div className="flex-1 flex justify-center">
               <h1 className="text-3xl font-bold text-[var(--primary)]">{project.title}</h1>
             </div>
-            <div className="flex-1" /> {/* Spacer for symmetry */}
+            <div className="flex-1" />
           </div>
         </div>
 
@@ -179,7 +207,7 @@ export default function ProjectDetails() {
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">
                         <DollarSignIcon className="h-4 w-4 text-primary mr-1" />
-                        <span className="font-bold text-lg text-primary">{project.budget}</span>
+                        <span className="font-bold text-lg text-primary">${project.budget}</span>
                       </div>
                       <div className="text-sm text-muted-foreground">Budget</div>
                     </div>
@@ -271,7 +299,7 @@ export default function ProjectDetails() {
                                     size="sm"
                                     variant="outline"
                                     className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                                    onClick={''}
+                                    onClick={() => { /* Implement mark as completed logic */ }}
                                   >
                                     Mark as Completed
                                   </Button>
@@ -289,7 +317,7 @@ export default function ProjectDetails() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Client Info */}
@@ -300,45 +328,46 @@ export default function ProjectDetails() {
               <CardContent>
                 <div className="flex items-center space-x-3 mb-4">
                   <Avatar className="h-12 w-12">
-                    {project.clientAvatar ? (
+                    {clientData.profilePicture ? (
                       <AvatarImage
-                        src={project.clientAvatar}
-                        alt={project.clientName || "Client"}
+                        src={clientData.profilePicture}
+                        alt={clientData.username || "Client"}
                       />
                     ) : (
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {project.clientName?.split(" ").map(n => n[0]).join("") || "CL"}
+                        {clientData.name?.split(" ").map(n => n[0]).join("") || "CL"}
                       </AvatarFallback>
                     )}
                   </Avatar>
                   <div>
-                    <div className="font-semibold">{project.clientName}</div>
-                    <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                    <div className="font-semibold">{clientData.firstName} {clientData.lastName}</div>
+                    {/* <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                       <StarIcon className="h-3 w-3 text-yellow-400 fill-current" />
                       <span>
-                        {project.clientRating ? parseFloat(project.clientRating).toFixed(1) : "N/A"} (
-                        {project.clientReviewCount || 0} reviews)
+                        {clientData.rating ? parseFloat(clientData.rating).toFixed(1) : "N/A"} (
+                        {clientData.reviewCount || 0} reviews)
                       </span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
                 <div className="space-y-2 text-sm">
-                  {/* Optional: if you have location stored elsewhere */}
-                  <div className="flex items-center space-x-2">
-                    <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-                    <span>{project.clientLocation}</span>
-                  </div>
-                  {project.projectsPosted != null && (
+                  {clientData.location && (
                     <div className="flex items-center space-x-2">
-                      <UserIcon className="h-4 w-4 text-muted-foreground" />
-                      <span>{project.projectsPosted} projects posted</span>
+                      <MapPinIcon className="h-4 w-4 text-muted-foreground" />
+                      <span>{clientData.location}</span>
                     </div>
                   )}
-                  {project.totalSpent != null && (
+                  {clientData.projectsPosted != null && (
+                    <div className="flex items-center space-x-2">
+                      <UserIcon className="h-4 w-4 text-muted-foreground" />
+                      <span>{clientData.projectsPosted} projects posted</span>
+                    </div>
+                  )}
+                  {clientData.totalSpent != null && (
                     <div className="flex items-center space-x-2">
                       <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
-                      <span>${Number(project.totalSpent).toLocaleString()} total spent</span>
+                      <span>${Number(clientData.totalSpent).toLocaleString()} total spent</span>
                     </div>
                   )}
                 </div>
@@ -347,8 +376,8 @@ export default function ProjectDetails() {
 
             {/* Action Buttons */}
             {canSubmitProposal && (
-              <Button 
-                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition" 
+              <Button
+                className="w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
                 size="lg" onClick={() => setActiveTab("submit-proposal")} data-testid="submit-proposal-button">Submit Proposal
               </Button>
             )}
@@ -385,21 +414,43 @@ export default function ProjectDetails() {
 
           {project.status === 'in_progress' && (isProjectOwner || isAssignedFreelancer) && (
             <>
+              <TabsList className="mb-4">
+                <TabsTrigger value="milestones">Milestones</TabsTrigger>
+                <TabsTrigger value="messages">Messages</TabsTrigger>
+              </TabsList>
+
               <TabsContent value="milestones" className="mt-6">
                 <MilestoneTracker projectId={projectId} showPaymentActions={isProjectOwner} />
               </TabsContent>
 
               <TabsContent value="messages" className="mt-6">
-                <MessageProvider projectId={projectId}>
-                  <ChatInterface projectId={projectId} receiverName={isProjectOwner ? "Assigned Freelancer" : "Client"}
-                    receiverId={isProjectOwner ? project.freelancerId || '' : project.clientId} />
-                </MessageProvider>
+                {receiverLoading ? (
+                  <Card className="h-[600px] flex items-center justify-center">
+                    <CardContent className="text-center">
+                      <p className="text-muted-foreground">Loading chat partner...</p>
+                    </CardContent>
+                  </Card>
+                ) : receiverData ? (
+                  <MessageProvider projectId={String(projectId)}>
+                    <ChatInterface
+                      projectId={String(projectId)}
+                      receiverId={String(chatReceiverId)}
+                      receiverData={receiverData}
+                    />
+                  </MessageProvider>
+                ) : (
+                  <Card className="h-[600px] flex items-center justify-center">
+                    <CardContent className="text-center">
+                      <p className="text-muted-foreground">Chat partner details not available.</p>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
             </>
           )}
         </Tabs>
 
-        {/* Help Section (optional, for consistency) */}
+        {/* Help Section */}
         <div className="mt-12 rounded-lg p-8" style={{ background: "#ffe0b2" }}>
           <h2 className="text-xl font-semibold mb-4 text-center text-[var(--primary)]">Tips for Working with Freelancers</h2>
           <div className="grid md:grid-cols-2 gap-6">

@@ -29,12 +29,12 @@ export function ClientDashboard() {
             <p className="opacity-90">Ready to hire top talent for your projects?</p>
           </div>
           <div className="flex items-center space-x-6 text-center">
-            <div>
+            {/* <div>
               <div className="text-2xl font-bold">{stats?.activeProjects || 0}</div>
               <div className="text-sm opacity-90">Active Projects</div>
-            </div>
+            </div> */}
             <div>
-              <div className="text-2xl font-bold">${stats?.totalSpent || '0'}</div>
+              <div className="text-2xl font-bold">${user.totalSpent || '0'}</div>
               <div className="text-sm opacity-90">Total Spent</div>
             </div>
           </div>
@@ -58,7 +58,7 @@ export function ClientDashboard() {
                 </div>
 
                 {user.bio && (
-                  <div className="text-sm text-muted-foreground mt-1">
+                  <div className="text-m text-muted-foreground mt-1">
                     {user.bio}
                   </div>
                 )}
@@ -74,14 +74,14 @@ export function ClientDashboard() {
                       <span className="font-medium">{user.location || 0}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm">
+                  {/* <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Projects Posted</span>
                     <span className="font-medium">{user?.projectsPosted || 0}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Active Projects</span>
                     <span className="font-medium">{user?.activeProjects || 0}</span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Total Spent</span>
                     <span className="font-medium">
@@ -110,15 +110,6 @@ export function ClientDashboard() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Recent Projects</h2>
-              {/* <Link href="/dashboard?tab=projects">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                >
-                  View All
-                </Button>
-              </Link> */}
             </div>
 
             {recentProjects.length === 0 ? (
